@@ -94,6 +94,16 @@ migrate-status:
 
 
 # =================================================================
+# Scripts
+# =================================================================
+.PHONY: seed-products
+
+seed-products:
+	@echo "Start seeding products data..."
+	@bash ./scripts/seeds/products/insert.sh
+	@echo "Seeding completed."
+
+# =================================================================
 # AWS resource operations
 # =================================================================
 VERSION := shop_api_v0.0.0
