@@ -34,6 +34,29 @@ func NewUserUseCase(
 	}
 }
 
+// ProductUseCase
+type IProductUseCase interface {
+	GetProductByID(ctx context.Context, productID uint32) (gen.GetProductByIDResponseObject, error)
+}
+
+type productUseCase struct {
+	db      *sql.DB
+	queries repository_gen_sqlc.Queries
+	dbtx    repository_gen_sqlc.DBTX
+}
+
+func NewProductUseCase(
+	db *sql.DB,
+	queries repository_gen_sqlc.Queries,
+	dbtx repository_gen_sqlc.DBTX,
+) IProductUseCase {
+	return &productUseCase{
+		db:      db,
+		queries: queries,
+		dbtx:    dbtx,
+	}
+}
+
 // ChargeUseCase
 type IChargeUseCase interface {
 	CreateCharge(ctx *gin.Context, request gen.CreateChargeRequestObject) (gen.CreateChargeResponseObject, error)

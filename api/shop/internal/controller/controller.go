@@ -12,17 +12,20 @@ import (
 type Controllers struct {
 	config             configuration.Config
 	userUseCase        usecase.IUserUseCase
+	productUseCase     usecase.IProductUseCase
 	chargeUseCase      usecase.IChargeUseCase
 	reservationUseCase usecase.IReservationUseCase
 }
 
 func NewControllers(cfg configuration.Config, db *sql.DB, queries repository_gen_sqlc.Queries) (*Controllers, error) {
 	userUseCase := usecase.NewUserUseCase(db, queries, db)
+	productUseCase := usecase.NewProductUseCase(db, queries, db)
 	chargeUseCase := usecase.NewChargeUseCase()
 	reservationUseCase := usecase.NewReservationUseCase()
 	return &Controllers{
 		cfg,
 		userUseCase,
+		productUseCase,
 		chargeUseCase,
 		reservationUseCase,
 	}, nil

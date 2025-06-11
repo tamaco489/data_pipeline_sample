@@ -1,0 +1,16 @@
+
+-- +migrate Up
+CREATE TABLE IF NOT EXISTS `product_ratings` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY COMMENT '評価ID',
+  `product_id` INT UNSIGNED NOT NULL COMMENT '商品ID',
+  `user_id` VARCHAR(255) NOT NULL COMMENT '評価を行ったユーザーID',
+  `rate` INT NOT NULL CHECK (`rate` BETWEEN 1 AND 5) COMMENT '評価（1〜5）',
+  `rated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '評価日時',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`product_id`) REFERENCES `products`(`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- +migrate Down
+DROP TABLE IF EXISTS `product_ratings`;

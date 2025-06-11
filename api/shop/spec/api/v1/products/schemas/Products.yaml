@@ -1,32 +1,32 @@
 title: GetProducts
 type: object
 required:
-  - products
-  - metadata
+- products
+- metadata
 properties:
   products:
     type: array
     items:
       type: object
       required:
-        - id
-        - name
-        - category_id
-        - category_name
-        - description
-        - price
-        - discount_flag
-        - discount_name
-        - discount_rate
-        - discounted_price
-        - stock_quantity
-        - vip_only
-        - image_url
-        - rate
+      - id
+      - name
+      - category_id
+      - category_name
+      - description
+      - price
+      - discount_flag
+      - discount_name
+      - discount_rate
+      - discounted_price
+      - stock_quantity
+      - vip_only
+      - image_url
+      - rate
       properties:
         id:
           type: integer
-          format: int32
+          format: uint32
           description: 商品ID
           example: 10001001
         name:
@@ -35,7 +35,7 @@ properties:
           example: "プレミアムコーヒー"
         category_id:
           type: integer
-          format: int32
+          format: uint32
           description: カテゴリID
           example: 10
         category_name:
@@ -47,8 +47,8 @@ properties:
           description: 商品の説明
           example: "香り高いアラビカ種のコーヒーです。"
         price:
-          type: number
-          format: float
+          type: integer
+          format: int64
           description: 定価（税込、日本円）
           example: 500.0
         discount_flag:
@@ -61,7 +61,7 @@ properties:
           example: "2024年クリスマスキャンペーン"
         discount_rate:
           type: integer
-          format: int32
+          format: uint32
           description: 割引率（%）
           example: 20
         discounted_price:
@@ -71,7 +71,7 @@ properties:
           example: 400.0
         stock_quantity:
           type: integer
-          format: int32
+          format: uint32
           description: 在庫数
           example: 50
         vip_only:
@@ -93,7 +93,7 @@ properties:
   metadata:
     type: object
     required:
-      - next_cursor
+    - next_cursor
     properties:
       next_cursor:
         type: string

@@ -587,7 +587,7 @@ components:
             properties:
               id:
                 type: integer
-                format: int32
+                format: uint32
                 description: 商品ID
                 example: 10001001
               name:
@@ -596,7 +596,7 @@ components:
                 example: プレミアムコーヒー
               category_id:
                 type: integer
-                format: int32
+                format: uint32
                 description: カテゴリID
                 example: 10
               category_name:
@@ -608,8 +608,8 @@ components:
                 description: 商品の説明
                 example: 香り高いアラビカ種のコーヒーです。
               price:
-                type: number
-                format: float
+                type: integer
+                format: int64
                 description: 定価（税込、日本円）
                 example: 500
               discount_flag:
@@ -622,7 +622,7 @@ components:
                 example: 2024年クリスマスキャンペーン
               discount_rate:
                 type: integer
-                format: int32
+                format: uint32
                 description: 割引率（%）
                 example: 20
               discounted_price:
@@ -632,7 +632,7 @@ components:
                 example: 400
               stock_quantity:
                 type: integer
-                format: int32
+                format: uint32
                 description: 在庫数
                 example: 50
               vip_only:
@@ -681,7 +681,7 @@ components:
       properties:
         id:
           type: integer
-          format: int32
+          format: uint32
           description: 商品ID
           example: 10001001
         name:
@@ -690,7 +690,7 @@ components:
           example: プレミアムコーヒー
         category_id:
           type: integer
-          format: int32
+          format: uint32
           description: カテゴリID
           example: 10
         category_name:
@@ -702,8 +702,8 @@ components:
           description: 商品の説明
           example: 香り高いアラビカ種のコーヒーです。
         price:
-          type: number
-          format: float
+          type: integer
+          format: int64
           description: 定価（税込、日本円）
           example: 500
         discount_flag:
@@ -716,7 +716,7 @@ components:
           example: 2024年クリスマスキャンペーン
         discount_rate:
           type: integer
-          format: int32
+          format: uint32
           description: 割引率（%）
           example: 20
         discounted_price:
@@ -726,7 +726,7 @@ components:
           example: 400
         stock_quantity:
           type: integer
-          format: int32
+          format: uint32
           description: 在庫数
           example: 50
         vip_only:

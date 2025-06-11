@@ -164,7 +164,7 @@ type Name struct {
 // ProductByID defines model for ProductByID.
 type ProductByID struct {
 	// CategoryId カテゴリID
-	CategoryId int32 `json:"category_id"`
+	CategoryId uint32 `json:"category_id"`
 
 	// CategoryName カテゴリ名
 	CategoryName string `json:"category_name"`
@@ -179,13 +179,13 @@ type ProductByID struct {
 	DiscountName string `json:"discount_name"`
 
 	// DiscountRate 割引率（%）
-	DiscountRate int32 `json:"discount_rate"`
+	DiscountRate uint32 `json:"discount_rate"`
 
 	// DiscountedPrice 割引後の価格（税込、日本円）
 	DiscountedPrice float32 `json:"discounted_price"`
 
 	// Id 商品ID
-	Id int32 `json:"id"`
+	Id uint32 `json:"id"`
 
 	// ImageUrl 商品イメージのURL
 	ImageUrl string `json:"image_url"`
@@ -194,13 +194,13 @@ type ProductByID struct {
 	Name string `json:"name"`
 
 	// Price 定価（税込、日本円）
-	Price float32 `json:"price"`
+	Price int64 `json:"price"`
 
 	// Rate 商品に対するユーザの評価（1〜5の整数）
 	Rate uint32 `json:"rate"`
 
 	// StockQuantity 在庫数
-	StockQuantity int32 `json:"stock_quantity"`
+	StockQuantity uint32 `json:"stock_quantity"`
 
 	// VipOnly VIP限定の商品か否か
 	VipOnly bool `json:"vip_only"`
@@ -221,7 +221,7 @@ type ProductNextCursor struct {
 // GetProducts defines model for .
 type GetProducts struct {
 	// CategoryId カテゴリID
-	CategoryId int32 `json:"category_id"`
+	CategoryId uint32 `json:"category_id"`
 
 	// CategoryName カテゴリ名
 	CategoryName string `json:"category_name"`
@@ -236,13 +236,13 @@ type GetProducts struct {
 	DiscountName string `json:"discount_name"`
 
 	// DiscountRate 割引率（%）
-	DiscountRate int32 `json:"discount_rate"`
+	DiscountRate uint32 `json:"discount_rate"`
 
 	// DiscountedPrice 割引後の価格（税込、日本円）
 	DiscountedPrice float32 `json:"discounted_price"`
 
 	// Id 商品ID
-	Id int32 `json:"id"`
+	Id uint32 `json:"id"`
 
 	// ImageUrl 商品イメージのURL
 	ImageUrl string `json:"image_url"`
@@ -251,13 +251,13 @@ type GetProducts struct {
 	Name string `json:"name"`
 
 	// Price 定価（税込、日本円）
-	Price float32 `json:"price"`
+	Price int64 `json:"price"`
 
 	// Rate 商品に対するユーザの評価（1〜5の整数）
 	Rate uint32 `json:"rate"`
 
 	// StockQuantity 在庫数
-	StockQuantity int32 `json:"stock_quantity"`
+	StockQuantity uint32 `json:"stock_quantity"`
 
 	// VipOnly VIP限定の商品か否か
 	VipOnly bool `json:"vip_only"`

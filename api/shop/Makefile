@@ -94,6 +94,16 @@ migrate-status:
 
 
 # =================================================================
+# Scripts
+# =================================================================
+.PHONY: seed-products
+
+seed-products:
+	@echo "Start seeding products data..."
+	@bash ./scripts/seeds/products/insert.sh
+	@echo "Seeding completed."
+
+# =================================================================
 # AWS resource operations
 # =================================================================
 VERSION := shop_api_v0.0.0
@@ -191,7 +201,7 @@ get-products:
 
 get-product-by-id:
 	curl -sX 'GET' \
-		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/products/20001001' \
+		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/products/10001002' \
 		-H 'accept: application/json' | jq .
 
 # External payment service customer information API
