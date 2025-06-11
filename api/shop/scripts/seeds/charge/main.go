@@ -5,11 +5,47 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"os"
 
 	"github.com/google/uuid"
 
 	_ "github.com/go-sql-driver/mysql"
 )
+
+type DBConfig struct {
+	Database string
+	Host     string
+	Port     string
+	Username string
+	Password string
+}
+
+func NewDBConfig() *DBConfig {
+	return &DBConfig{
+		Database: getEnvOrDefault("MYSQL_DATABASE", "dev_core"),
+		Host:     getEnvOrDefault("MYSQL_HOST", "localhost"),
+		Port:     getEnvOrDefault("MYSQL_PORT", "33306"),
+		Username: getEnvOrDefault("MYSQL_USERNAME", "core"),
+		Password: getEnvOrDefault("MYSQL_PASSWORD", "password"),
+	}
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+func (c *DBConfig) getDSN() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		c.Username,
+		c.Password,
+		c.Host,
+		c.Port,
+		c.Database,
+	)
+}
 
 type ChargeRow struct {
 	ReservationID         string
@@ -18,15 +54,33 @@ type ChargeRow struct {
 	Status                string
 }
 
-func dbOpen() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "core:password@tcp(localhost:33306)/dev_core?parseTime=true")
+func NewChargeRow(reservationID, userID string, totalDiscountedAmount int, status string) *ChargeRow {
+	return &ChargeRow{
+		ReservationID:         reservationID,
+		UserID:                userID,
+		TotalDiscountedAmount: totalDiscountedAmount,
+		Status:                status,
+	}
+}
+
+type ChargeProcessor struct {
+	db *sql.DB
+}
+
+func NewChargeProcessor() (*ChargeProcessor, error) {
+	config := NewDBConfig()
+	db, err := sql.Open("mysql", config.getDSN())
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
-	return db, nil
+	return &ChargeProcessor{db: db}, nil
 }
 
-func getConfirmedReservations(ctx context.Context, db *sql.DB) ([]*ChargeRow, error) {
+func (cp *ChargeProcessor) Close() error {
+	return cp.db.Close()
+}
+
+func (cp *ChargeProcessor) getConfirmedReservations(ctx context.Context) ([]*ChargeRow, error) {
 	query := `
 SELECT
 	r.id AS reservation_id,
@@ -41,7 +95,7 @@ WHERE r.status = 'confirmed'
 GROUP BY r.id;
 `
 
-	rows, err := db.QueryContext(ctx, query)
+	rows, err := cp.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
@@ -49,17 +103,18 @@ GROUP BY r.id;
 
 	var crows []*ChargeRow
 	for rows.Next() {
-		var row ChargeRow
-		if err := rows.Scan(&row.ReservationID, &row.UserID, &row.TotalDiscountedAmount, &row.Status); err != nil {
+		var reservationID, userID, status string
+		var totalDiscountedAmount int
+		if err := rows.Scan(&reservationID, &userID, &totalDiscountedAmount, &status); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
-		crows = append(crows, &row)
+		crows = append(crows, NewChargeRow(reservationID, userID, totalDiscountedAmount, status))
 	}
 
 	return crows, nil
 }
 
-func insertCharge(ctx context.Context, db *sql.DB, row *ChargeRow) error {
+func (cp *ChargeProcessor) insertCharge(ctx context.Context, row *ChargeRow) error {
 	query := `INSERT INTO charges (
 		id, reservation_id, user_id, amount, status, charged_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW(), NOW()
 	)`
@@ -79,7 +134,7 @@ func insertCharge(ctx context.Context, db *sql.DB, row *ChargeRow) error {
 		status = "unpaid"
 	}
 
-	_, err = db.ExecContext(ctx, query,
+	_, err = cp.db.ExecContext(ctx, query,
 		uuid.String(),
 		row.ReservationID,
 		row.UserID,
@@ -93,24 +148,17 @@ func insertCharge(ctx context.Context, db *sql.DB, row *ChargeRow) error {
 	return nil
 }
 
-func handler(ctx context.Context) error {
+func (cp *ChargeProcessor) Process(ctx context.Context) error {
 	slog.InfoContext(ctx, "start charges script")
 
-	db, err := dbOpen()
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
-	rows, err := getConfirmedReservations(ctx, db)
+	rows, err := cp.getConfirmedReservations(ctx)
 	if err != nil {
 		return err
 	}
 
 	for _, row := range rows {
-		if err := insertCharge(ctx, db, row); err != nil {
+		if err := cp.insertCharge(ctx, row); err != nil {
 			slog.ErrorContext(ctx, "insert failed", "err", err, "reservation_id", row.ReservationID)
-			// continue if you want to proceed with processing, return if you want to abort on failure
 			continue
 		}
 		slog.InfoContext(ctx, "inserted charge", "reservation_id", row.ReservationID)
@@ -121,7 +169,14 @@ func handler(ctx context.Context) error {
 
 func main() {
 	ctx := context.Background()
-	if err := handler(ctx); err != nil {
+
+	processor, err := NewChargeProcessor()
+	if err != nil {
+		panic(err)
+	}
+	defer processor.Close()
+
+	if err := processor.Process(ctx); err != nil {
 		panic(err)
 	}
 
