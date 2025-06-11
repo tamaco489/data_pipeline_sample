@@ -1,0 +1,28 @@
+post:
+  tags:
+    - v1
+    - payments/reservations
+  summary: 商品の予約API
+  description: |
+    商品IDと個数を指定して、新しい予約を作成します。
+    作成された予約は、後続の注文APIで使用されます。
+  operationId: createReservation
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/ReservationRequest.yaml'
+  responses:
+    '201':
+      description: 予約の作成に成功しました。
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/ReservationResponse.yaml'
+    '400':
+      $ref: '../../../responses/BadRequest.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'

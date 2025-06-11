@@ -1,0 +1,16 @@
+type: array
+description: 商品IDと個数のセット
+items:
+  required:
+    - product_id
+    - quantity
+  type: object
+  properties:
+    product_id:
+      type: integer
+      description: 予約対象となる商品ID
+      example: 10001001
+    quantity:
+      type: integer
+      description: 予約する商品の個数
+      example: 2

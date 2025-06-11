@@ -1,0 +1,98 @@
+components:
+  schemas:
+    ChargeHistories:
+      title: ChargeHistories
+      type: object
+      description: 注文履歴のレスポンスオブジェクト
+      required:
+        - metadata
+        - histories
+
+      properties:
+        metadata:
+          type: object
+          description: ページネーションに関連するメタデータ
+          required:
+            - limit
+            - offset
+            - total_count
+            - has_more
+          properties:
+            limit:
+              type: integer
+              description: 1ページあたりのアイテム数
+              example: 10
+            offset:
+              type: integer
+              description: 現在のページの開始位置
+              example: 0
+            total_count:
+              type: integer
+              description: 履歴情報の総件数
+              example: 50
+            has_more:
+              type: boolean
+              description: 次のページが存在するかどうか
+              example: true
+          x-go-type-name: ChargeHistoriesLimitOffset
+
+        histories:
+          type: array
+          description: 注文履歴のリスト
+          items:
+            type: object
+            required:
+              - charge_id
+              - charge_amount
+              - charge_date
+              - products
+            properties:
+              charge_id:
+                type: string
+                description: 注文ID
+                example: "9f9213b2-9687-6910-d2ec-3a247582be2d"
+              charge_amount:
+                type: number
+                description: 請求金額
+                format: float
+                example: 3000.0
+              charge_date:
+                type: string
+                description: 請求日時
+                format: date-time
+                example: "2024-12-24T12:00:00Z"
+              products:
+                type: array
+                description: 注文IDに紐づく商品のリスト
+                items:
+                  $ref: '#/components/schemas/GetChargeHistoriesProducts'
+            x-go-type-name: GetChargeHistories
+
+    GetChargeHistoriesProducts:
+      title: GetChargeHistoriesProducts
+      type: object
+      description: 注文IDに紐づく商品のリスト
+      required:
+        - product_id
+        - product_name
+        - quantity
+        - unit_price
+      properties:
+        product_id:
+          type: string
+          description: 商品ID
+          example: "12345"
+        product_name:
+          type: string
+          description: 商品名
+          example: "Sample Product"
+        quantity:
+          type: integer
+          description: 商品の数量
+          example: 2
+        unit_price:
+          type: number
+          description: 商品1つあたりの価格
+          format: float
+          example: 1500.0
+

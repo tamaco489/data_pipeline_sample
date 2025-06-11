@@ -1,0 +1,12 @@
+title: CreateUser
+type: object
+description: ユーザ新規登録APIのレスポンス
+required:
+  - user_id
+properties:
+  user_id:
+    description: user_idを返却します。
+    type: integer
+    format: int64
+example:
+  user_id: 10001001

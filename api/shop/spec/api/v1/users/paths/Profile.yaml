@@ -1,0 +1,30 @@
+post:
+  tags:
+    - v1
+    - users/profiles
+  summary: プロフィール情報の新規登録API
+  description: ユーザのプロフィール情報を登録します。
+  operationId: createProfile
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/Profile.yaml'
+  responses:
+    '201':
+      description: ユーザのプロフィール登録が成功しました。
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/Profile.yaml'
+    '400':
+      $ref: '../../../responses/BadRequest.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '403':
+      $ref: '../../../responses/Forbidden.yaml'
+    '409':
+      $ref: '../../../responses/AlreadyExists.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'

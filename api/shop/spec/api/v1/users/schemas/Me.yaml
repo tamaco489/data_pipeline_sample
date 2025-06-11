@@ -1,0 +1,10 @@
+type: object
+properties:
+  user_id:
+    description: 登録した自身のユーザーIDを返却
+    type: integer
+    format: int64
+required:
+  - user_id
+example:
+  user_id: 10001001

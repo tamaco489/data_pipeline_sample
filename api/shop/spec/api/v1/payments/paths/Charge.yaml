@@ -1,0 +1,24 @@
+post:
+  tags:
+    - v1
+    - payments/charges
+  summary: 商品の購入API
+  description: |-
+    新しい支払い（チャージ）を登録します。
+    必要に応じて、支払いに関連するトークンや金額をリクエストボディに含めます。
+  operationId: createCharge
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/CreateChargeRequest.yaml'
+  responses:
+    '204':
+      description: 商品の購入に成功しました。
+    '400':
+      $ref: '../../../responses/BadRequest.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'

@@ -1,0 +1,20 @@
+get:
+  tags:
+    - v1
+    - users/profiles
+  summary: 自身のプロフィール情報取得API
+  description: 自身のプロフィール情報を取得する
+  operationId: getProfileMe
+  responses:
+    '200':
+      description: 自身のプロフィール情報の取得に成功しました。
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/Profile.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '404':
+        $ref: '../../../responses/NotFound.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'

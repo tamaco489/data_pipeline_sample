@@ -1,0 +1,38 @@
+get:
+  tags:
+    - v1
+    - products
+  summary: 商品の一覧情報取得API
+  description: 商品情報一覧を取得します。
+  operationId: getProducts
+  parameters:
+    - name: cursor
+      in: query
+      description: |
+        次のページの商品情報一覧を取得するためのカーソル。
+        カーソルは商品IDをbase64でエンコードした文字列を指定する。
+      required: false
+      schema:
+        type: string
+        example: "MjAwMDEwMDE="
+        default: ""
+    - name: limit
+      in: query
+      description: |
+        取得する商品情報数を指定。
+        デフォルトは10。1度に最大20件まで取得可能。
+      required: false
+      schema:
+        type: integer
+        format: int32
+        example: 10
+        default: 10
+        minimum: 1
+        maximum: 20
+  responses:
+    '200':
+      description: 商品情報一覧の取得に成功しました。
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/Products.yaml'

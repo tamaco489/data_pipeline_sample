@@ -1,0 +1,8 @@
+type: string
+description: コメントに対する報告理由
+enum:
+  - "irrelevant"  # 無関係
+  - "inappropriate"  # 不適切
+  - "fake"  # フェイク
+  - "other"  # その他
+example: "inappropriate"

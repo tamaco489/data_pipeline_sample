@@ -1,0 +1,64 @@
+get:
+  tags:
+    - v1
+    - payments/cards
+  summary: 登録済みクレジットカードの一覧取得API
+  description: 登録されたクレジットカード情報一覧を取得します。
+  operationId: getCreditCards
+  responses:
+    '200':
+      description: クレジットカード情報一覧の取得に成功しました。
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/GetCreditCards.yaml'
+    '400':
+      $ref: '../../../responses/BadRequest.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'
+
+post:
+  tags:
+    - v1
+    - payments/cards
+  summary: クレジットカードの新規登録API
+  description: |-
+    新しいクレジットカードを登録します。
+    事前に外部のカード登録APIを実行し、登録後に生成されたカードトークンをバックエンドサーバにリクエストする形式をとる。
+  operationId: createCreditCard
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/CreateCreditCard.yaml'
+  responses:
+    '204':
+      description: クレジットカードの登録に成功しました。
+    '400':
+      $ref: '../../../responses/BadRequest.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'
+
+delete:
+  tags:
+    - v1
+    - payments/cards
+  summary: 登録済みクレジットカードの削除API
+  description: 登録されたクレジットカードを削除します。
+  operationId: deleteCreditCard
+  responses:
+    '204':
+      description: クレジットカードの削除に成功しました。
+    '400':
+      $ref: '../../../responses/BadRequest.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '404':
+      $ref: '../../../responses/NotFound.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'

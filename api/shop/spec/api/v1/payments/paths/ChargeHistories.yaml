@@ -1,0 +1,45 @@
+get:
+  tags:
+    - v1
+    - payments/charges
+  summary: 購入履歴の一覧取得API
+  description: 以前の注文（チャージ）の履歴情報を取得します。
+  operationId: getChargeHistories
+  parameters:
+    - name: offset
+      in: query
+      description: |
+        取得を開始する注文のインデックス。最初のページは0を指定。
+        オフセットは0から始め、次のページのデータを取得する際にはページサイズ（`limit`）を加算していきます。
+      required: false
+      schema:
+        type: integer
+        example: 0
+        default: 0
+
+    - name: limit
+      in: query
+      description: |
+        取得する注文履歴の数を指定。デフォルトは10、最大で20件まで指定可能。
+      required: false
+      schema:
+        type: integer
+        format: int32
+        example: 10
+        default: 10
+        minimum: 1
+        maximum: 20
+
+  responses:
+    '200':
+      description: 購入履歴の一覧取得に成功しました。
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/ChargeHistories.yaml#/components/schemas/ChargeHistories'
+    '400':
+      $ref: '../../../responses/BadRequest.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'

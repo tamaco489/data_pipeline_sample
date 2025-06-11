@@ -1,0 +1,13 @@
+services:
+  shop-api:
+    platform: linux/amd64
+    image: cosmtrek/air:v1.62.0
+    container_name: shop-api
+    working_dir: /go/src/github.com/tamaco489/data_pipeline_sample/api/shop
+    volumes:
+      - ./shop:/go/src/github.com/tamaco489/data_pipeline_sample/api/shop
+      - ~/.cache/go-build:/root/.cache/go-build
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./shop/.env

@@ -1,0 +1,32 @@
+get:
+  tags:
+    - v1
+    - payments/customer
+  summary: 外部決済向けサービスのアカウント取得API
+  description: 外部決済サービス向け顧客IDを取得します。
+  operationId: getCustomerByUserID
+  parameters:
+    - name: userID
+      in: path
+      description: ユーザID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 10001001
+        minimum: 1
+  responses:
+    '200':
+      description: 外部決済サービス向け顧客IDの取得に成功しました。
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/CustomerByUserID.yaml'
+    '400':
+      $ref: '../../../responses/BadRequest.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '404':
+      $ref: '../../../responses/NotFound.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'

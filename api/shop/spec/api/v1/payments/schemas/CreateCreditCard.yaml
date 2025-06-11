@@ -1,0 +1,15 @@
+type: object
+required:
+  - token
+  - is_default
+properties:
+  token:
+    type: string
+    description: |
+      フロントエンドで登録済みのカード情報に紐付く一意のトークン。
+      セキュアに生成され、カード番号などの生データを含まない形式。
+    example: "9f9213b2-9687-6910-d2ec-3a247582be2d"
+  is_default:
+    type: boolean
+    description: 登録するカードをデフォルトとして設定するか
+    example: true

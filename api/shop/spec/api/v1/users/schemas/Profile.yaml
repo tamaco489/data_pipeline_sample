@@ -1,0 +1,22 @@
+type: object
+required:
+  - name
+  - address
+  - birthdate
+  - image_url
+properties:
+  name:
+    description: 姓名に関する情報
+    $ref: './Name.yaml'
+  address:
+    description: 住所に関する情報
+    $ref: './Addresses.yaml'
+  birthdate:
+    type: string
+    format: date
+    description: ユーザーの生年月日（YYYY-MM-DD形式）
+    example: "2000-01-01"
+  image_url:
+    type: string
+    description: ユーザーのプロフィール画像のURL
+    example: "https://example"

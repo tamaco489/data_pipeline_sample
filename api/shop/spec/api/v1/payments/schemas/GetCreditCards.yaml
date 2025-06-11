@@ -1,0 +1,17 @@
+title: CreditCardList
+type: array
+items:
+  type: object
+  required:
+    - masked_card_number
+    - is_default
+  properties:
+    masked_card_number:
+      type: string
+      description: マスキングされたカード番号（***** + 下3桁）
+      example: "*****123"
+    is_default:
+      type: boolean
+      description: デフォルトのクレジットカードかどうか
+      example: true
+  x-go-type-name: CreditCardList

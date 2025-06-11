@@ -1,0 +1,33 @@
+get:
+  tags:
+    - v1
+    - products
+  summary: 商品の詳細情報取得API
+  description: 商品IDに合致する商品情報の詳細を取得する
+  operationId: getProductByID
+  parameters:
+    - name: productID
+      in: path
+      description: |
+        商品ID
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 10001001
+        minimum: 1
+  responses:
+    '200':
+      description: 商品情報詳細の取得に成功しました。
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/ProductByID.yaml'
+    '400':
+      $ref: '../../../responses/BadRequest.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '404':
+      $ref: '../../../responses/NotFound.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'

@@ -1,0 +1,82 @@
+type: object
+required:
+  - id
+  - name
+  - category_id
+  - category_name
+  - description
+  - price
+  - discount_flag
+  - discount_name
+  - discount_rate
+  - discounted_price
+  - stock_quantity
+  - vip_only
+  - image_url
+  - rate
+properties:
+  id:
+    type: integer
+    format: int32
+    description: 商品ID
+    example: 10001001
+  name:
+    type: string
+    description: 商品名
+    example: "プレミアムコーヒー"
+  category_id:
+    type: integer
+    format: int32
+    description: カテゴリID
+    example: 10
+  category_name:
+    type: string
+    description: カテゴリ名
+    example: "飲料"
+  description:
+    type: string
+    description: 商品の説明
+    example: "香り高いアラビカ種のコーヒーです。"
+  price:
+    type: number
+    format: float
+    description: 定価（税込、日本円）
+    example: 500.0
+  discount_flag:
+    type: boolean
+    description: 割引キャンペーン対象か否か
+    example: true
+  discount_name:
+    type: string
+    description: 割引キャンペーン名称
+    example: "2024年クリスマスキャンペーン"
+  discount_rate:
+    type: integer
+    format: int32
+    description: 割引率（%）
+    example: 20
+  discounted_price:
+    type: number
+    format: float
+    description: 割引後の価格（税込、日本円）
+    example: 400.0
+  stock_quantity:
+    type: integer
+    format: int32
+    description: 在庫数
+    example: 50
+  vip_only:
+    type: boolean
+    description: VIP限定の商品か否か
+    example: false
+  image_url:
+    type: string
+    description: 商品イメージのURL
+    example: "https://example.com/images/10001001/product.jpg"
+  rate:
+    type: integer
+    format: uint32
+    description: 商品に対するユーザの評価（1〜5の整数）
+    minimum: 1
+    maximum: 5
+    example: 4

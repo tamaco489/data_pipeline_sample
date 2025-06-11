@@ -1,0 +1,41 @@
+post:
+  tags:
+    - v1
+    - payments/customer
+  summary: 外部決済向けサービスのアカウント登録API
+  description: 外部決済サービスにアカウント登録を行います。
+  operationId: createCustomer
+  responses:
+    '201':
+      description: 外部決済サービスのアカウント登録が成功しました。
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/CreateCustomerResponse.yaml'
+    '400':
+      $ref: '../../../responses/BadRequest.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '409':
+      $ref: '../../../responses/AlreadyExists.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'
+
+delete:
+  tags:
+    - v1
+    - payments/customer
+  summary: 外部決済向けサービスのアカウント削除API
+  description: 外部決済サービスにアカウント削除を行います。
+  operationId: deleteCustomer
+  responses:
+    '204':
+      description: 外部決済サービスのアカウント削除が成功しました。
+    '400':
+      $ref: '../../../responses/BadRequest.yaml'
+    '401':
+      $ref: '../../../responses/Unauthorized.yaml'
+    '409':
+      $ref: '../../../responses/AlreadyExists.yaml'
+    '500':
+      $ref: '../../../responses/InternalServerError.yaml'
