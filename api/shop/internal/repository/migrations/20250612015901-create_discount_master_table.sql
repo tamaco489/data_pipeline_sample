@@ -1,7 +1,7 @@
 
 -- +migrate Up
 CREATE TABLE IF NOT EXISTS `discount_master` (
-  `id` INT PRIMARY KEY COMMENT '割引ID',
+  `id` INT UNSIGNED PRIMARY KEY COMMENT '割引ID',
   `name` VARCHAR(255) NOT NULL COMMENT '割引キャンペーン名',
   `rate` INT NOT NULL CHECK (`rate` BETWEEN 0 AND 100) COMMENT '割引率（%）',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

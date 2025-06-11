@@ -2,7 +2,7 @@
 -- +migrate Up
 CREATE TABLE IF NOT EXISTS `product_images` (
   `id` INT AUTO_INCREMENT PRIMARY KEY COMMENT '画像ID',
-  `product_id` INT NOT NULL COMMENT '商品ID',
+  `product_id` INT UNSIGNED NOT NULL COMMENT '商品ID',
   `image_url` TEXT NOT NULL COMMENT '商品画像URL',
   `is_main` BOOLEAN DEFAULT FALSE COMMENT 'メイン画像かどうか',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -2,7 +2,7 @@
 -- +migrate Up
 CREATE TABLE IF NOT EXISTS `product_ratings` (
   `id` INT AUTO_INCREMENT PRIMARY KEY COMMENT '評価ID',
-  `product_id` INT NOT NULL COMMENT '商品ID',
+  `product_id` INT UNSIGNED NOT NULL COMMENT '商品ID',
   `user_id` VARCHAR(255) NOT NULL COMMENT '評価を行ったユーザーID',
   `rate` INT NOT NULL CHECK (`rate` BETWEEN 1 AND 5) COMMENT '評価（1〜5）',
   `rated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '評価日時',
