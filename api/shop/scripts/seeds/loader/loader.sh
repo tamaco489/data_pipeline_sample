@@ -21,6 +21,9 @@ SQL_FILES=(
   "./scripts/seeds/loader/products/04_product_stocks.sql"
   "./scripts/seeds/loader/products/05_product_images.sql"
   "./scripts/seeds/loader/products/06_product_ratings.sql"
+
+  # payments
+  "./scripts/seeds/loader/payments/01_credit_cards.sql"
 )
 
 for sql_file in "${SQL_FILES[@]}"

@@ -30,3 +30,4 @@ go.work
 /build/shop_api
 /docker/db/var/lib/
 *.env
+*.txt
