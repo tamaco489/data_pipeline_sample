@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	CreateUser(ctx context.Context, db DBTX, arg CreateUserParams) error
+	GetUserByUid(ctx context.Context, db DBTX, uid string) (GetUserByUidRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

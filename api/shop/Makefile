@@ -3,7 +3,8 @@
 # =================================================================
 .PHONY: setup-env install-tools
 setup-env:
-	cp -p .env_sample .env
+	@cp -p .env_sample .env
+	@cp .env_localstack_sample .env_localstack
 
 install-tools: setup-env
 	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
@@ -53,13 +54,21 @@ run: build
 # =================================================================
 .PHONY: up down logs
 up:
-	docker compose up -d shop-api mysql
+	docker compose up -d shop-api mysql localstack
 
 down:
-	docker compose down shop-api mysql
+	docker compose down shop-api mysql localstack
 
 logs:
 	docker compose logs -f shop-api
+
+# secret managerを操作する時のやつ
+.PHONY: list-secrets get-secret-value
+list-secrets:
+	docker exec -it core-localstack awslocal secretsmanager list-secrets --region ap-northeast-1
+
+get-secret-value:
+	docker exec -it core-localstack awslocal secretsmanager get-secret-value --secret-id core/dev/rds-cluster --region ap-northeast-1
 
 
 # =================================================================

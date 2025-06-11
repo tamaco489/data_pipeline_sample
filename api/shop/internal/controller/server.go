@@ -9,6 +9,9 @@ import (
 	"github.com/tamaco489/data_pipeline_sample/api/shop/internal/configuration"
 	"github.com/tamaco489/data_pipeline_sample/api/shop/internal/gen"
 	"github.com/tamaco489/data_pipeline_sample/api/shop/internal/library/logger"
+
+	repository_gen_sqlc "github.com/tamaco489/data_pipeline_sample/api/shop/internal/repository/gen_sqlc"
+	repository_store "github.com/tamaco489/data_pipeline_sample/api/shop/internal/repository/store"
 )
 
 func NewShopAPIServer(cnf configuration.Config) (*http.Server, error) {
@@ -19,7 +22,11 @@ func NewShopAPIServer(cnf configuration.Config) (*http.Server, error) {
 	r.Use(cors.New(corsCnf))
 	r.Use(gin.Recovery())
 
-	apiController, err := NewControllers(cnf)
+	// new mysql
+	db := repository_store.InitDB()
+	queries := repository_gen_sqlc.New()
+
+	apiController, err := NewControllers(cnf, db, *queries)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new controllers %v", err)
 	}

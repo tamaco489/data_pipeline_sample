@@ -7,10 +7,13 @@ import (
 
 func (c *Controllers) CreateUser(ctx *gin.Context, request gen.CreateUserRequestObject) (gen.CreateUserResponseObject, error) {
 
-	// NOTE: uidは一旦固定値で返す
-	var uid int64 = 10001001
+	// NOTE: sub is a fixed value for verification purposes
+	var sub string = "2iSI3im4bcOFJDoT7E9QLebbU9G2"
 
-	return gen.CreateUser201JSONResponse{
-		UserId: uid,
-	}, nil
+	res, err := c.userUseCase.CreateUser(ctx, sub, request)
+	if err != nil {
+		return gen.CreateUser500Response{}, err
+	}
+
+	return res, nil
 }
