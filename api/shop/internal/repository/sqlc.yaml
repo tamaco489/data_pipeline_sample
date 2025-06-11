@@ -1,0 +1,18 @@
+version: "2"
+sql:
+  - engine: "mysql"
+    queries: "./queries/"
+    schema: "./migrations/"
+    strict_function_checks: true
+    strict_order_by: true
+    gen:
+      go:
+        package: "repository"
+        out: "./gen_sqlc/"
+        emit_json_tags: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_methods_with_db_argument: true
+        emit_enum_valid_method: true
+        emit_sql_as_comment: false
+        json_tags_case_style: "snake"
