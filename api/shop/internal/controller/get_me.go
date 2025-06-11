@@ -7,8 +7,8 @@ import (
 
 func (c *Controllers) GetMe(ctx *gin.Context, request gen.GetMeRequestObject) (gen.GetMeResponseObject, error) {
 
-	// NOTE: uidは一旦固定値で返す
-	var uid string = "10001001"
+	// NOTE: For verification purposes, passing a fixed uid to usecase
+	var uid string = "01975f55-3e04-7d92-bd78-37e2568a35b8"
 
 	res, err := c.userUseCase.GetMe(ctx, uid, request)
 	if err != nil {
