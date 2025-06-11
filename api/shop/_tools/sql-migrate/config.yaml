@@ -1,0 +1,4 @@
+dev:
+  dialect: mysql
+  datasource: root:password#0@tcp(localhost:33306)/dev_core?parseTime=true
+  dir: ./internal/repository/migrations

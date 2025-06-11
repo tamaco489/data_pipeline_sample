@@ -8,11 +8,14 @@ setup-env:
 install-tools: setup-env
 	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
 	go install golang.org/x/tools/cmd/godoc@latest
+	go install github.com/rubenv/sql-migrate/...@latest
+	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+	go install go.uber.org/mock/mockgen@latest
 	npm i -g @redocly/cli@latest
 
 
 # =================================================================
-# Generate Open API files
+# Generate Open API files and SQLC files
 # =================================================================
 .PHONY: gen-api bundle-openapi
 gen-api: bundle-openapi
@@ -21,6 +24,11 @@ gen-api: bundle-openapi
 
 bundle-openapi:
 	redocly bundle ./spec/openapi_base.yaml --output ./spec/openapi.yaml
+
+gen-sqlc:
+	sqlc generate -f internal/repository/sqlc.yaml
+	mockgen -source=./internal/repository/gen_sqlc/querier.go -package mock -destination=./internal/repository/gen_mock/mock_querier.go
+	mockgen -source=./internal/repository/gen_sqlc/db.go -package mock -destination=./internal/repository/gen_mock/mock_db.go
 
 
 # =================================================================
@@ -45,13 +53,35 @@ run: build
 # =================================================================
 .PHONY: up down logs
 up:
-	docker compose up -d shop-api
+	docker compose up -d shop-api mysql
 
 down:
-	docker compose down shop-api
+	docker compose down shop-api mysql
 
 logs:
 	docker compose logs -f shop-api
+
+
+# =================================================================
+# MySQL operations
+# =================================================================
+.PHONY: mysql
+mysql:
+	MYSQL_ROOT_PASSWORD=password#0 docker compose exec mysql mysql -u root -ppassword#0 -h localhost -P 33306 dev_core
+
+# MySQL table migration
+.PHONY: migrate-new migrate-up migrate-down migrate-status
+migrate-new:
+	sql-migrate new -env='dev' -config=./_tools/sql-migrate/config.yaml $(NAME)
+
+migrate-up:
+	sql-migrate up -env='dev' -config=./_tools/sql-migrate/config.yaml
+
+migrate-down:
+	sql-migrate down -limit=1 -env='dev' -config=./_tools/sql-migrate/config.yaml
+
+migrate-status:
+	sql-migrate status -env='dev' -config=./_tools/sql-migrate/config.yaml
 
 
 # =================================================================
