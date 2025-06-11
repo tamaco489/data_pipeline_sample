@@ -107,6 +107,9 @@ load: reset
 	@bash ./scripts/seeds/loader/loader.sh
 	@echo "Seeding completed."
 
+charge: load
+	go run ./scripts/seeds/charge/main.go
+
 # =================================================================
 # AWS resource operations
 # =================================================================
