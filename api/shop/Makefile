@@ -201,7 +201,7 @@ get-products:
 
 get-product-by-id:
 	curl -sX 'GET' \
-		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/products/20001001' \
+		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/products/10001002' \
 		-H 'accept: application/json' | jq .
 
 # External payment service customer information API
