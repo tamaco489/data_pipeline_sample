@@ -1,17 +1,16 @@
 openapi: 3.0.0
 info:
-  title: async serverless application shop API
-  description: |-
-    async serverless application shop API
+  title: shop api
+  description: API for product purchases, reservations, orders, credit card registration, and payments
   version: 1.0.0
 servers:
-  - url: 'http://localhost:{port}/shop/'
-    description: dev
-    variables:
-      port:
-        default: '8080'
-  - url: 'https://api.<domain-name>/shop/'
-    description: stg
+- url: 'http://localhost:{port}/shop/'
+  description: dev
+  variables:
+    port:
+      default: '8080'
+- url: 'https://api.<domain-name>/shop/'
+  description: stg
 
 components:
   securitySchemes:
@@ -21,14 +20,14 @@ components:
       bearerFormat: JWT
 
 security:
-  - bearerAuth: []
+- bearerAuth: []
 
 paths:
   # /healthcheck: # api-gatewayでエンドポイントを/v1/を指定しているため
   /v1/healthcheck:
     get:
       tags:
-        - healthcheck
+      - healthcheck
       summary: ヘルスチェックAPI
       description: APIが正常に動作しているかを確認します。
       operationId: healthcheck
@@ -39,7 +38,7 @@ paths:
             application/json:
               schema:
                 $ref: './api/responses/HealthCheck.yaml'
-      security: []  # healthcheckでは認証を必要としないため
+      security: [] # healthcheckでは認証を必要としないため
 
   # ユーザ系API
   /v1/users:
