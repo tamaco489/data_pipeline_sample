@@ -11,3 +11,30 @@ services:
       - "8080:8080"
     env_file:
       - ./shop/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    platform: linux/amd64
+    image: mysql:8.0.40
+    container_name: core-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'dev_core'
+      MYSQL_USER: 'core'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password#0'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_PORT: '3306'
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$MYSQL_ROOT_PASSWORD" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./shop/docker/db/var/lib/:/var/lib/mysql
+      - ./shop/docker/db/etc/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf
+    ports:
+      - "33306:3306"
