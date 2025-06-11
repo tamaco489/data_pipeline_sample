@@ -11,12 +11,16 @@ MYSQL_HOST="localhost"
 MYSQL_PORT=33306
 
 SQL_FILES=(
-  "./scripts/seeds/products/01_category_master.sql"
-  "./scripts/seeds/products/02_discount_master.sql"
-  "./scripts/seeds/products/03_products.sql"
-  "./scripts/seeds/products/04_product_stocks.sql"
-  "./scripts/seeds/products/05_product_images.sql"
-  # "./scripts/seeds/products/06_product_ratings.sql"
+  # users
+  "./scripts/seeds/loader/users/01_users.sql"
+
+  # products
+  "./scripts/seeds/loader/products/01_category_master.sql"
+  "./scripts/seeds/loader/products/02_discount_master.sql"
+  "./scripts/seeds/loader/products/03_products.sql"
+  "./scripts/seeds/loader/products/04_product_stocks.sql"
+  "./scripts/seeds/loader/products/05_product_images.sql"
+  "./scripts/seeds/loader/products/06_product_ratings.sql"
 )
 
 for sql_file in "${SQL_FILES[@]}"
