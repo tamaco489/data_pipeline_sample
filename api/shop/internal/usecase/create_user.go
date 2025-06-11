@@ -18,24 +18,22 @@ import (
 
 func (u *userUseCase) CreateUser(ctx context.Context, sub string, request gen.CreateUserRequestObject) (gen.CreateUserResponseObject, error) {
 
-	// 認証種別に応じて既にユーザ登録済みの場合は409エラーにする
-
-	// ユーザの新規登録を行う
+	// Create a new user registration
 	uuid, err := uuid.NewV7()
 	if err != nil {
 		return gen.CreateUser500Response{}, fmt.Errorf("failed to new uuid: %w", err)
 	}
 
-	// transactionを発行
+	// Start a transaction
 	tx, err := u.db.BeginTx(ctx, nil)
 	if err != nil {
 		return gen.CreateUser500Response{}, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
-	// 関数を抜ける際にロールバックを行う
+	// Rollback the transaction when the function exits
 	defer func() { _ = tx.Rollback() }()
 
-	// userを作成
+	// Create a user
 	if err := u.queries.CreateUser(ctx, tx, repository_gen_sqlc.CreateUserParams{
 		ID:          uuid.String(),
 		Username:    sql.NullString{},
@@ -44,10 +42,10 @@ func (u *userUseCase) CreateUser(ctx context.Context, sub string, request gen.Cr
 		Status:      repository_gen_sqlc.UsersStatusActive,
 		LastLoginAt: time.Now(),
 	}); err != nil {
-		// uuidの重複エラー、ほぼ行らない想定だがハンドリングはしておく
+		// Handle duplicate uuid error
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) {
-			// エラーコード1062は重複エントリ（PK違反）の場合に発生
+			// Duplicate entry error (PK violation)
 			// DOC: https://dev.mysql.com/doc/mysql-errors/8.0/en/server-error-reference.html#error_er_dup_entry
 			if mysqlErr.Number == 1062 {
 				slog.ErrorContext(ctx, "duplicate primary key entry.", slog.String("id", uuid.String()), slog.String("error", err.Error()))
@@ -57,7 +55,12 @@ func (u *userUseCase) CreateUser(ctx context.Context, sub string, request gen.Cr
 		return gen.CreateUser500Response{}, fmt.Errorf("failed to create user: %w", err)
 	}
 
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		return gen.CreateUser500Response{}, fmt.Errorf("failed to transaction commit: %w", err)
+	}
+
 	return gen.CreateUser201JSONResponse{
-		UserId: 1, // todo: intになってるのでstringに直す。
+		Uid: uuid.String(),
 	}, nil
 }
