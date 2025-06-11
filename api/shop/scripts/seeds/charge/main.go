@@ -12,6 +12,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// DBConfig: Structure for database connection information
 type DBConfig struct {
 	Database string
 	Host     string
@@ -20,6 +21,7 @@ type DBConfig struct {
 	Password string
 }
 
+// NewDBConfig: Create a new DBConfig instance
 func NewDBConfig() *DBConfig {
 	return &DBConfig{
 		Database: getEnvOrDefault("MYSQL_DATABASE", "dev_core"),
@@ -30,6 +32,7 @@ func NewDBConfig() *DBConfig {
 	}
 }
 
+// getEnvOrDefault: Get environment variable or use default value
 func getEnvOrDefault(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
@@ -37,6 +40,7 @@ func getEnvOrDefault(key, defaultValue string) string {
 	return defaultValue
 }
 
+// getDSN: Get Data Source Name for database connection
 func (c *DBConfig) getDSN() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		c.Username,
@@ -47,6 +51,7 @@ func (c *DBConfig) getDSN() string {
 	)
 }
 
+// ChargeRow: Structure for charge data
 type ChargeRow struct {
 	ReservationID         string
 	UserID                string
@@ -54,6 +59,7 @@ type ChargeRow struct {
 	Status                string
 }
 
+// NewChargeRow: Create a new ChargeRow instance
 func NewChargeRow(reservationID, userID string, totalDiscountedAmount int, status string) *ChargeRow {
 	return &ChargeRow{
 		ReservationID:         reservationID,
@@ -63,10 +69,12 @@ func NewChargeRow(reservationID, userID string, totalDiscountedAmount int, statu
 	}
 }
 
+// ChargeProcessor: Structure for charge processor
 type ChargeProcessor struct {
 	db *sql.DB
 }
 
+// NewChargeProcessor: Create a new ChargeProcessor instance
 func NewChargeProcessor() (*ChargeProcessor, error) {
 	config := NewDBConfig()
 	db, err := sql.Open("mysql", config.getDSN())
@@ -76,10 +84,12 @@ func NewChargeProcessor() (*ChargeProcessor, error) {
 	return &ChargeProcessor{db: db}, nil
 }
 
+// Close: Close the database connection
 func (cp *ChargeProcessor) Close() error {
 	return cp.db.Close()
 }
 
+// getConfirmedReservations: Get confirmed reservations
 func (cp *ChargeProcessor) getConfirmedReservations(ctx context.Context) ([]*ChargeRow, error) {
 	query := `
 SELECT
@@ -114,6 +124,7 @@ GROUP BY r.id;
 	return crows, nil
 }
 
+// insertCharge: Insert charge data
 func (cp *ChargeProcessor) insertCharge(ctx context.Context, row *ChargeRow) error {
 	query := `INSERT INTO charges (
 		id, reservation_id, user_id, amount, status, charged_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW(), NOW()
@@ -148,14 +159,17 @@ func (cp *ChargeProcessor) insertCharge(ctx context.Context, row *ChargeRow) err
 	return nil
 }
 
+// Process: Process charge data
 func (cp *ChargeProcessor) Process(ctx context.Context) error {
 	slog.InfoContext(ctx, "start charges script")
 
+	// Get confirmed reservations
 	rows, err := cp.getConfirmedReservations(ctx)
 	if err != nil {
 		return err
 	}
 
+	// Insert charge data
 	for _, row := range rows {
 		if err := cp.insertCharge(ctx, row); err != nil {
 			slog.ErrorContext(ctx, "insert failed", "err", err, "reservation_id", row.ReservationID)
@@ -164,9 +178,12 @@ func (cp *ChargeProcessor) Process(ctx context.Context) error {
 		slog.InfoContext(ctx, "inserted charge", "reservation_id", row.ReservationID)
 	}
 
+	// todo: register charge_products data
+
 	return nil
 }
 
+// main: Main function
 func main() {
 	ctx := context.Background()
 
