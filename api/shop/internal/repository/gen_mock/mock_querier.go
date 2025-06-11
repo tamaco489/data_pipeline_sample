@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gen_sqlc "github.com/tamaco489/data_pipeline_sample/api/shop/internal/repository/gen_sqlc"
+	repository "github.com/tamaco489/data_pipeline_sample/api/shop/internal/repository/gen_sqlc"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -42,7 +42,7 @@ func (m *MockQuerier) EXPECT() *MockQuerierMockRecorder {
 }
 
 // CreateUser mocks base method.
-func (m *MockQuerier) CreateUser(ctx context.Context, db gen_sqlc.DBTX, arg gen_sqlc.CreateUserParams) error {
+func (m *MockQuerier) CreateUser(ctx context.Context, db repository.DBTX, arg repository.CreateUserParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUser", ctx, db, arg)
 	ret0, _ := ret[0].(error)
@@ -53,4 +53,19 @@ func (m *MockQuerier) CreateUser(ctx context.Context, db gen_sqlc.DBTX, arg gen_
 func (mr *MockQuerierMockRecorder) CreateUser(ctx, db, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockQuerier)(nil).CreateUser), ctx, db, arg)
+}
+
+// GetUserByUid mocks base method.
+func (m *MockQuerier) GetUserByUid(ctx context.Context, db repository.DBTX, uid string) (repository.GetUserByUidRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByUid", ctx, db, uid)
+	ret0, _ := ret[0].(repository.GetUserByUidRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByUid indicates an expected call of GetUserByUid.
+func (mr *MockQuerierMockRecorder) GetUserByUid(ctx, db, uid any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUid", reflect.TypeOf((*MockQuerier)(nil).GetUserByUid), ctx, db, uid)
 }

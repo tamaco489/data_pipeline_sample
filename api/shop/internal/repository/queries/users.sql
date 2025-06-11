@@ -14,3 +14,14 @@ INSERT INTO `users` (
   sqlc.arg('status'),
   sqlc.arg('last_login_at')
 );
+
+-- name: GetUserByUid :one
+SELECT
+  `id`,
+  `username`,
+  `email`,
+  `role`,
+  `status`,
+  `last_login_at`
+FROM `users`
+WHERE `id` = sqlc.arg('uid');
