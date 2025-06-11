@@ -18,7 +18,7 @@ func (u *productUseCase) GetProductByID(ctx context.Context, productID uint32) (
 		return gen.GetProductByID500Response{}, fmt.Errorf("failed to get product by id: %w", err)
 	}
 
-	// 割引後の価格を計算
+	// Calculate discounted price
 	discountedPrice := int64(product.Price) * int64(100-product.DiscountRate.Int32) / 100
 	discountFlag := product.DiscountRate.Int32 > 0
 
