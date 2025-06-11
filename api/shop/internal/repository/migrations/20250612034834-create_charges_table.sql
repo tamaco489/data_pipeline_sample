@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS `charges` (
   `reservation_id` CHAR(36) NOT NULL COMMENT '予約ID',
   `user_id` VARCHAR(255) NOT NULL COMMENT '決済を行ったユーザーID',
   `amount` INT UNSIGNED NOT NULL COMMENT '請求金額（合計）',
+  `status` ENUM('unpaid', 'paid', 'failed') NOT NULL DEFAULT 'unpaid' COMMENT '決済ステータス',
   `charged_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '決済日時',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
