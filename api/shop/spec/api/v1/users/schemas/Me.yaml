@@ -1,10 +1,11 @@
+title: GetMe
 type: object
-properties:
-  user_id:
-    description: 登録した自身のユーザーIDを返却
-    type: integer
-    format: int64
+description: 自身のユーザーID取得APIのレスポンス
 required:
-  - user_id
+- uid
+properties:
+  uid:
+    description: uidを返却します。
+    type: string
 example:
-  user_id: 10001001
+  uid: "123e4567-e89b-12d3-a456-426614174000"

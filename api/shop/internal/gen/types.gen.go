@@ -97,8 +97,8 @@ type CreateCustomerResponse struct {
 
 // CreateUserResponse ユーザ新規登録APIのレスポンス
 type CreateUserResponse struct {
-	// UserId user_idを返却します。
-	UserId int64 `json:"user_id"`
+	// Uid uidを返却します。
+	Uid string `json:"uid"`
 }
 
 // CustomerByUserID defines model for CustomerByUserID.
@@ -140,10 +140,10 @@ type HealthCheck struct {
 	Message string `json:"message"`
 }
 
-// Me defines model for Me.
+// Me 自身のユーザーID取得APIのレスポンス
 type Me struct {
-	// UserId 登録した自身のユーザーIDを返却
-	UserId int64 `json:"user_id"`
+	// Uid uidを返却します。
+	Uid string `json:"uid"`
 }
 
 // Name defines model for Name.
