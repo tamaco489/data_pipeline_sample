@@ -117,18 +117,94 @@ func (e UsersStatus) Valid() bool {
 	return false
 }
 
+type CategoryMaster struct {
+	// カテゴリID
+	ID uint32 `json:"id"`
+	// カテゴリ名
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type DiscountMaster struct {
+	// 割引ID
+	ID uint32 `json:"id"`
+	// 割引キャンペーン名
+	Name string `json:"name"`
+	// 割引率（%）
+	Rate      int32     `json:"rate"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type Product struct {
+	// 商品ID
+	ID uint32 `json:"id"`
+	// 商品名
+	Name string `json:"name"`
+	// 商品説明
+	Description sql.NullString `json:"description"`
+	// 税込価格
+	Price string `json:"price"`
+	// カテゴリID
+	CategoryID uint32 `json:"category_id"`
+	// 割引ID（NULL可）
+	DiscountID sql.NullInt32 `json:"discount_id"`
+	// VIP限定フラグ
+	VipOnly   bool      `json:"vip_only"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type ProductImage struct {
+	// 画像ID
+	ID int32 `json:"id"`
+	// 商品ID
+	ProductID uint32 `json:"product_id"`
+	// 商品画像URL
+	ImageUrl string `json:"image_url"`
+	// メイン画像かどうか
+	IsMain    sql.NullBool `json:"is_main"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+}
+
+type ProductRating struct {
+	// 評価ID
+	ID int32 `json:"id"`
+	// 商品ID
+	ProductID uint32 `json:"product_id"`
+	// 評価を行ったユーザーID
+	UserID string `json:"user_id"`
+	// 評価（1〜5）
+	Rate int32 `json:"rate"`
+	// 評価日時
+	RatedAt   time.Time `json:"rated_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type ProductStock struct {
+	// 商品ID
+	ProductID uint32 `json:"product_id"`
+	// 在庫数
+	StockQuantity uint32    `json:"stock_quantity"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
 type User struct {
-	// Product-specific unique ID
+	// ユーザーID
 	ID string `json:"id"`
-	// Account name in the game
+	// ユーザー名
 	Username sql.NullString `json:"username"`
-	// User email address
+	// ユーザーのメールアドレス
 	Email sql.NullString `json:"email"`
-	// User role level
+	// ユーザーの権限
 	Role UsersRole `json:"role"`
-	// Determine if the account is active, inactive, or banned
+	// ユーザーのステータス
 	Status UsersStatus `json:"status"`
-	// Last login date and time
+	// 最終ログイン日時
 	LastLoginAt time.Time `json:"last_login_at"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
