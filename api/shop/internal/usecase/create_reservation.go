@@ -16,11 +16,11 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 
 	time.Sleep(500 * time.Millisecond)
 
-	// ************************* 商品情報のチェック *************************
-	// todo: 商品情報を取得する。※商品ID, 商品価格, 割引率, 在庫数
+	// ************************* Product Information Check *************************
+	// Get product information. ※Product ID, Product Price, Discount Rate, Stock Quantity
 	ids := make([]uint32, len(*request.Body))
 
-	// product_id と quantity の map を作成する。
+	// Create a map of product_id and quantity.
 	productIDQuantityMap := make(map[uint32]uint32)
 	for i, p := range *request.Body {
 		ids[i] = p.ProductId
@@ -32,14 +32,14 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 		return gen.CreateReservation500Response{}, fmt.Errorf("failed to get products: %w", err)
 	}
 
-	// 指定した商品が1つも存在しなかった場合は404を返す。
+	// If no product is found, return 404.
 	if len(products) == 0 {
 		slog.ErrorContext(ctx, "Product not found", "product_ids", ids)
 		return gen.CreateReservation404Response{}, nil
 	}
 
 	for _, p := range products {
-		// todo: 在庫0件のものがある場合は404を返す。
+		// If the stock quantity is 0, return 404.
 		if p.ProductStockQuantity == 0 {
 			slog.ErrorContext(
 				ctx,
@@ -49,7 +49,7 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 			)
 			return gen.CreateReservation404Response{}, nil
 		}
-		// todo: リクエストで指定した商品数が在庫数を超えている場合は400を返す。
+		// If the requested quantity exceeds the stock quantity, return 400.
 		if p.ProductStockQuantity < productIDQuantityMap[p.ProductID] {
 			slog.ErrorContext(
 				ctx,
@@ -62,15 +62,15 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 		}
 	}
 
-	// ************************* 予約情報を保存 *************************
-	// todo: 商品に割引率が指定されている場合は、割引率を適用した価格に変更する。割引率が指定されていない場合は、商品価格をそのまま使用する。
+	// ************************* Save Reservation Information *************************
+	// If the discount rate is specified for the product, change the price to the discounted price. If the discount rate is not specified, use the product price as is.
 	discountedPrice := make(map[uint32]uint32)
 	for _, p := range products {
-		// 割引率が指定されている場合は、割引率を適用した価格に変更する。
+		// If the discount rate is specified, change the price to the discounted price.
 		if p.DiscountRate.Valid {
 			discountedPrice[p.ProductID] = uint32(p.ProductPrice * (100 - p.DiscountRate.Int32) / 100)
 		}
-		// 割引率が指定されていない場合は、商品価格をそのまま使用する。
+		// If the discount rate is not specified, use the product price as is.
 		if !p.DiscountRate.Valid {
 			discountedPrice[p.ProductID] = uint32(p.ProductPrice)
 		}
@@ -78,7 +78,7 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 
 	slog.InfoContext(ctx, "discountedPrice", "discountedPrice", discountedPrice)
 
-	// todo: 予約情報を保存する。予約情報は reservation_products, reservations に保存するため transaction を発行する。
+	// Save reservation information. Reservation information is saved in reservation_products and reservations, so a transaction is issued.
 	// Generate reservation ID
 	reservationID, err := uuid.NewV7()
 	if err != nil {
