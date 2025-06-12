@@ -32,7 +32,7 @@ SELECT
   ps.stock_quantity AS product_stock_quantity
 FROM products as p
 INNER JOIN category_master as cm ON p.category_id = cm.id
-LEFT JOIN product_stocks as ps ON p.id = ps.product_id
+INNER JOIN product_stocks as ps ON p.id = ps.product_id
 LEFT JOIN discount_master as dm ON p.discount_id = dm.id
 WHERE p.id IN (sqlc.slice('product_ids'))
 ORDER BY p.id;
