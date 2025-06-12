@@ -3,13 +3,18 @@ type: array
 items:
   type: object
   required:
-    - masked_card_number
-    - is_default
+  - provider_type
+  - payment_provider_card_id
+  - is_default
   properties:
-    masked_card_number:
+    provider_type:
       type: string
-      description: マスキングされたカード番号（***** + 下3桁）
-      example: "*****123"
+      description: 決済プロバイダーの種類
+      example: "fincode"
+    payment_provider_card_id:
+      type: string
+      description: 決済プロバイダー側のカードID
+      example: "card_00000001_fincode"
     is_default:
       type: boolean
       description: デフォルトのクレジットカードかどうか

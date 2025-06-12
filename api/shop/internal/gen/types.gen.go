@@ -130,8 +130,11 @@ type CreditCardList struct {
 	// IsDefault デフォルトのクレジットカードかどうか
 	IsDefault bool `json:"is_default"`
 
-	// MaskedCardNumber マスキングされたカード番号（***** + 下3桁）
-	MaskedCardNumber string `json:"masked_card_number"`
+	// PaymentProviderCardId 決済プロバイダー側のカードID
+	PaymentProviderCardId string `json:"payment_provider_card_id"`
+
+	// ProviderType 決済プロバイダーの種類
+	ProviderType string `json:"provider_type"`
 }
 
 // HealthCheck HealthCheckのレスポンス
