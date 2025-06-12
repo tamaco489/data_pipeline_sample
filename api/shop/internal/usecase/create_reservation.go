@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/tamaco489/data_pipeline_sample/api/shop/internal/gen"
+
+	repository_gen_sqlc "github.com/tamaco489/data_pipeline_sample/api/shop/internal/repository/gen_sqlc"
 )
 
 func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, request gen.CreateReservationRequestObject) (gen.CreateReservationResponseObject, error) {
@@ -62,12 +64,62 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 
 	// ************************* 予約情報を保存 *************************
 	// todo: 商品に割引率が指定されている場合は、割引率を適用した価格に変更する。割引率が指定されていない場合は、商品価格をそのまま使用する。
+	discountedPrice := make(map[uint32]uint32)
+	for _, p := range products {
+		// 割引率が指定されている場合は、割引率を適用した価格に変更する。
+		if p.DiscountRate.Valid {
+			discountedPrice[p.ProductID] = uint32(p.ProductPrice * (100 - p.DiscountRate.Int32) / 100)
+		}
+		// 割引率が指定されていない場合は、商品価格をそのまま使用する。
+		if !p.DiscountRate.Valid {
+			discountedPrice[p.ProductID] = uint32(p.ProductPrice)
+		}
+	}
+
+	slog.InfoContext(ctx, "discountedPrice", "discountedPrice", discountedPrice)
 
 	// todo: 予約情報を保存する。予約情報は reservation_products, reservations に保存するため transaction を発行する。
 	// Generate reservation ID
 	reservationID, err := uuid.NewV7()
 	if err != nil {
-		return gen.CreateCreditCard500Response{}, fmt.Errorf("failed to new uuid for reservation: %w", err)
+		return gen.CreateReservation500Response{}, fmt.Errorf("failed to new uuid for reservation: %w", err)
+	}
+
+	// Start a transaction
+	tx, err := u.db.BeginTx(ctx, nil)
+	if err != nil {
+		return gen.CreateReservation500Response{}, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	// Rollback the transaction when the function exits
+	defer func() { _ = tx.Rollback() }()
+
+	// Create a reservation
+	if err := u.queries.CreateReservation(ctx, tx, repository_gen_sqlc.CreateReservationParams{
+		ReservationID: reservationID.String(),
+		UserID:        uid,
+		ReservedAt:    time.Now(),
+		ExpiredAt:     time.Now().Add(15 * time.Minute), // Expires after 15 minutes
+		Status:        repository_gen_sqlc.ReservationsStatusPending,
+	}); err != nil {
+		return gen.CreateReservation500Response{}, fmt.Errorf("failed to create reservation: %w", err)
+	}
+
+	// Create reservation products
+	for _, p := range products {
+		if err := u.queries.CreateReservationProduct(ctx, tx, repository_gen_sqlc.CreateReservationProductParams{
+			ReservationID: reservationID.String(),
+			ProductID:     p.ProductID,
+			Quantity:      productIDQuantityMap[p.ProductID],
+			UnitPrice:     discountedPrice[p.ProductID],
+		}); err != nil {
+			return gen.CreateReservation500Response{}, fmt.Errorf("failed to create reservation product: %w", err)
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		return gen.CreateReservation500Response{}, fmt.Errorf("failed to transaction commit: %w", err)
 	}
 
 	return gen.CreateReservation201JSONResponse{
