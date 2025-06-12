@@ -5,7 +5,10 @@ INSERT INTO payment_provider_customers (
 )
 VALUES
   ('01975ff1-5ba9-73ca-be9a-75aa6bb00aaf', 'cus_00000001_fincode', 'fincode'),
+  ('01975ff1-5ba9-73ca-be9a-75aa6bb00aaf', 'cus_00000001_stripe', 'stripe'),
+  ('01975ff1-5ba9-73ca-be9a-75aa6bb00aaf', 'cus_00000001_linepay', 'linepay'),
   ('00000000-0000-0000-0000-000000000002', 'cus_0002_stripe', 'stripe'),
+  ('00000000-0000-0000-0000-000000000002', 'cus_0002_linepay', 'linepay'),
   ('00000000-0000-0000-0000-000000000003', 'cus_0003_stripe', 'linepay'),
   ('00000000-0000-0000-0000-000000000004', 'cus_0004_stripe', 'linepay'),
   ('00000000-0000-0000-0000-000000000005', 'cus_0005_stripe', 'stripe'),
