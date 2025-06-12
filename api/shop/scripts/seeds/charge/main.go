@@ -95,12 +95,12 @@ func (cp *ChargeProcessor) getConfirmedReservations(ctx context.Context) ([]*Cha
 SELECT
 	r.id AS reservation_id,
 	r.user_id,
-	ROUND(SUM(rp.unit_price * rp.quantity * (100 - dm.rate) / 100)) AS total_discounted_amount,
+	ROUND(SUM(rp.unit_price * rp.quantity * (100 - COALESCE(dm.rate, 0)) / 100)) AS total_discounted_amount,
 	r.status
 FROM reservations AS r
 INNER JOIN reservation_products AS rp ON r.id = rp.reservation_id
 INNER JOIN products AS p ON rp.product_id = p.id
-INNER JOIN discount_master AS dm ON p.discount_id = dm.id
+LEFT JOIN discount_master AS dm ON p.discount_id = dm.id
 WHERE r.status = 'confirmed'
 GROUP BY r.id;
 `
