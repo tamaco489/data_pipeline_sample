@@ -17,20 +17,48 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 	// ************************* 商品情報のチェック *************************
 	// todo: 商品情報を取得する。※商品ID, 商品価格, 割引率, 在庫数
 	ids := make([]uint32, len(*request.Body))
+
+	// product_id と quantity の map を作成する。
+	productIDQuantityMap := make(map[uint32]uint32)
 	for i, p := range *request.Body {
 		ids[i] = p.ProductId
+		productIDQuantityMap[p.ProductId] = p.Quantity
 	}
 
 	products, err := u.queries.GetProductsByIDs(ctx, u.dbtx, ids)
 	if err != nil {
-		return gen.InternalServerErrorResponse{}, fmt.Errorf("failed to get products: %w", err)
+		return gen.CreateReservation500Response{}, fmt.Errorf("failed to get products: %w", err)
 	}
 
-	slog.InfoContext(ctx, "検証中です", "products", products)
+	// 指定した商品が1つも存在しなかった場合は404を返す。
+	if len(products) == 0 {
+		slog.ErrorContext(ctx, "Product not found", "product_ids", ids)
+		return gen.CreateReservation404Response{}, nil
+	}
 
-	// todo: 商品は複数指定可能だが1件でも在庫0件のものがある場合は404を返す。
-
-	// todo: 指定した商品数が在庫数を超えている場合は400を返す。
+	for _, p := range products {
+		// todo: 在庫0件のものがある場合は404を返す。
+		if p.ProductStockQuantity == 0 {
+			slog.ErrorContext(
+				ctx,
+				"Product out of stock",
+				"product_id", p.ProductID,
+				"product_stock_quantity", p.ProductStockQuantity,
+			)
+			return gen.CreateReservation404Response{}, nil
+		}
+		// todo: リクエストで指定した商品数が在庫数を超えている場合は400を返す。
+		if p.ProductStockQuantity < productIDQuantityMap[p.ProductID] {
+			slog.ErrorContext(
+				ctx,
+				"Product stock quantity is less than requested quantity",
+				"product_id", p.ProductID,
+				"product_stock_quantity", p.ProductStockQuantity,
+				"requested_quantity", productIDQuantityMap[p.ProductID],
+			)
+			return gen.CreateReservation400Response{}, nil
+		}
+	}
 
 	// ************************* 予約情報を保存 *************************
 	// todo: 商品に割引率が指定されている場合は、割引率を適用した価格に変更する。割引率が指定されていない場合は、商品価格をそのまま使用する。
@@ -39,7 +67,7 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 	// Generate reservation ID
 	reservationID, err := uuid.NewV7()
 	if err != nil {
-		return gen.InternalServerErrorResponse{}, fmt.Errorf("failed to new uuid for reservation: %w", err)
+		return gen.CreateCreditCard500Response{}, fmt.Errorf("failed to new uuid for reservation: %w", err)
 	}
 
 	return gen.CreateReservation201JSONResponse{
