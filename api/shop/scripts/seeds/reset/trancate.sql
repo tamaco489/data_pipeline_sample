@@ -5,6 +5,7 @@ TRUNCATE TABLE charges;
 TRUNCATE TABLE reservation_products;
 TRUNCATE TABLE reservations;
 TRUNCATE TABLE credit_cards;
+TRUNCATE TABLE payment_provider_customers;
 TRUNCATE TABLE product_ratings;
 TRUNCATE TABLE product_images;
 TRUNCATE TABLE product_stocks;
