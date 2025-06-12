@@ -69,6 +69,24 @@ func NewChargeRow(reservationID, userID string, totalDiscountedAmount int, statu
 	}
 }
 
+// ChargeProductRow: Structure for charge product data
+type ChargeProductRow struct {
+	ChargeID  string
+	ProductID int
+	Quantity  int
+	UnitPrice int
+}
+
+// NewChargeProductRow: Create a new ChargeProductRow instance
+func NewChargeProductRow(chargeID string, productID, quantity, unitPrice int) *ChargeProductRow {
+	return &ChargeProductRow{
+		ChargeID:  chargeID,
+		ProductID: productID,
+		Quantity:  quantity,
+		UnitPrice: unitPrice,
+	}
+}
+
 // ChargeProcessor: Structure for charge processor
 type ChargeProcessor struct {
 	db *sql.DB
@@ -125,16 +143,18 @@ GROUP BY r.id;
 }
 
 // insertCharge: Insert charge data
-func (cp *ChargeProcessor) insertCharge(ctx context.Context, row *ChargeRow) error {
+func (cp *ChargeProcessor) insertCharge(ctx context.Context, row *ChargeRow) (string, error) {
 	query := `INSERT INTO charges (
 		id, reservation_id, user_id, amount, status, charged_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW(), NOW()
 	)`
 
+	// Generate charge ID
 	uuid, err := uuid.NewV7()
 	if err != nil {
-		return fmt.Errorf("failed to new uuid: %w", err)
+		return "", fmt.Errorf("failed to new uuid: %w", err)
 	}
 
+	// Set status
 	var status string
 	switch row.Status {
 	case "confirmed":
@@ -145,6 +165,7 @@ func (cp *ChargeProcessor) insertCharge(ctx context.Context, row *ChargeRow) err
 		status = "unpaid"
 	}
 
+	// Insert charge data
 	_, err = cp.db.ExecContext(ctx, query,
 		uuid.String(),
 		row.ReservationID,
@@ -153,7 +174,55 @@ func (cp *ChargeProcessor) insertCharge(ctx context.Context, row *ChargeRow) err
 		status,
 	)
 	if err != nil {
-		return fmt.Errorf("insert failed for reservation %s: %w", row.ReservationID, err)
+		return "", fmt.Errorf("insert failed for reservation %s: %w", row.ReservationID, err)
+	}
+
+	return uuid.String(), nil
+}
+
+// getReservationProductsForCharge: Get reservation products for charge
+func (cp *ChargeProcessor) getReservationProductsForCharge(ctx context.Context, reservationID string) ([]*ChargeProductRow, error) {
+	query := `
+SELECT
+    rp.product_id,
+    rp.quantity,
+    rp.unit_price
+FROM reservation_products AS rp
+WHERE rp.reservation_id = ?;
+`
+	rows, err := cp.db.QueryContext(ctx, query, reservationID)
+	if err != nil {
+		return nil, fmt.Errorf("query reservation_products failed for reservation %s: %w", reservationID, err)
+	}
+	defer rows.Close()
+
+	var cps []*ChargeProductRow
+	for rows.Next() {
+		var productID, quantity, unitPrice int
+		if err := rows.Scan(&productID, &quantity, &unitPrice); err != nil {
+			return nil, fmt.Errorf("scan reservation_products failed for reservation %s: %w", reservationID, err)
+		}
+		// charge_id will be passed during insertion, so initialize with empty string here
+		cps = append(cps, NewChargeProductRow("", productID, quantity, unitPrice))
+	}
+
+	return cps, nil
+}
+
+// insertChargeProduct: Insert a single charge_product data
+func (cp *ChargeProcessor) insertChargeProduct(ctx context.Context, chargeID string, cpRow *ChargeProductRow) error {
+	query := `INSERT INTO charge_products (
+        charge_id, product_id, quantity, unit_price, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW()
+    )`
+
+	_, err := cp.db.ExecContext(ctx, query,
+		chargeID,
+		cpRow.ProductID,
+		cpRow.Quantity,
+		cpRow.UnitPrice,
+	)
+	if err != nil {
+		return fmt.Errorf("insert failed for charge_product (charge_id: %s, product_id: %d): %w", chargeID, cpRow.ProductID, err)
 	}
 
 	return nil
@@ -169,16 +238,45 @@ func (cp *ChargeProcessor) Process(ctx context.Context) error {
 		return err
 	}
 
-	// Insert charge data
-	for _, row := range rows {
-		if err := cp.insertCharge(ctx, row); err != nil {
-			slog.ErrorContext(ctx, "insert failed", "err", err, "reservation_id", row.ReservationID)
-			continue
-		}
-		slog.InfoContext(ctx, "inserted charge", "reservation_id", row.ReservationID)
+	// Start transaction
+	tx, err := cp.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
-	// todo: register charge_products data
+	// Rollback transaction if error occurs
+	defer tx.Rollback()
+
+	for _, row := range rows {
+		slog.InfoContext(ctx, "processing charge", "reservation_id", row.ReservationID)
+
+		chargeID, err := cp.insertCharge(ctx, row)
+		if err != nil {
+			slog.ErrorContext(ctx, "failed to insert charge", "err", err, "reservation_id", row.ReservationID)
+			continue // Next reservation
+		}
+
+		// Get charge_products data
+		chargeProducts, err := cp.getReservationProductsForCharge(ctx, row.ReservationID)
+		if err != nil {
+			slog.ErrorContext(ctx, "failed to get reservation products for charge", "err", err, "reservation_id", row.ReservationID)
+			continue // Next reservation
+		}
+
+		// Insert charge_products data
+		for _, cpRow := range chargeProducts {
+			if err := cp.insertChargeProduct(ctx, chargeID, cpRow); err != nil {
+				slog.ErrorContext(ctx, "insert charge_product failed", "err", err, "reservation_id", row.ReservationID, "product_id", cpRow.ProductID)
+				continue // Next charge_product
+			}
+			slog.InfoContext(ctx, "inserted charge_product", "charge_id", chargeID, "product_id", cpRow.ProductID)
+		}
+	}
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
 
 	return nil
 }
