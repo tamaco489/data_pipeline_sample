@@ -255,7 +255,7 @@ create-reservations:
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/reservations' \
 		-H 'accept: application/json' \
 		-H 'Content-Type: application/json' \
-		-d '[{"product_id": 10001004, "quantity": 1}, {"product_id": 10001006, "quantity": 3}]'
+		-d '[{"product_id": 10001001, "quantity": 1}, {"product_id": 10001003, "quantity": 1}, {"product_id": 10001009, "quantity": 3}, {"product_id": 10001014, "quantity": 1}]'
 
 # Charge API
 .PHONY: create-charge get-charge-histories
