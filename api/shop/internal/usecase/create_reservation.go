@@ -17,7 +17,6 @@ func (ru reservationUseCase) CreateReservation(ctx *gin.Context, uid string, req
 	// Adding a 500ms delay to simulate a performance-challenged API that handles a large number of record operations.
 	time.Sleep(500 * time.Millisecond)
 
-	// ************************* Product Information Check *************************
 	// Get product information. ※Product ID, Product Price, Discount Rate, Stock Quantity
 	ids := make([]uint32, len(*request.Body))
 
@@ -38,56 +37,17 @@ func (ru reservationUseCase) CreateReservation(ctx *gin.Context, uid string, req
 		return gen.CreateReservation400Response{}, nil
 	}
 
-	// ************************* Save Reservation Information *************************
 	// Calculate the discounted price of the product.
-	discountedPrice := ru.calculateDiscountedPrices(products)
+	discountedPriceMap := ru.calculateDiscountedPrices(products)
 
 	// Save reservation information. Reservation information is saved in reservation_products and reservations, so a transaction is issued.
-	// Generate reservation ID
-	reservationID, err := uuid.NewV7()
+	reservationID, err := ru.saveReservation(ctx, uid, products, productIDQuantityMap, discountedPriceMap)
 	if err != nil {
-		return gen.CreateReservation500Response{}, fmt.Errorf("failed to new uuid for reservation: %w", err)
-	}
-
-	// Start a transaction
-	tx, err := ru.db.BeginTx(ctx, nil)
-	if err != nil {
-		return gen.CreateReservation500Response{}, fmt.Errorf("failed to begin transaction: %w", err)
-	}
-
-	// Rollback the transaction when the function exits
-	defer func() { _ = tx.Rollback() }()
-
-	// Create a reservation
-	if err := ru.queries.CreateReservation(ctx, tx, repository_gen_sqlc.CreateReservationParams{
-		ReservationID: reservationID.String(),
-		UserID:        uid,
-		ReservedAt:    time.Now(),
-		ExpiredAt:     time.Now().Add(15 * time.Minute), // Expires after 15 minutes
-		Status:        repository_gen_sqlc.ReservationsStatusPending,
-	}); err != nil {
-		return gen.CreateReservation500Response{}, fmt.Errorf("failed to create reservation: %w", err)
-	}
-
-	// Create reservation products
-	for _, p := range products {
-		if err := ru.queries.CreateReservationProduct(ctx, tx, repository_gen_sqlc.CreateReservationProductParams{
-			ReservationID: reservationID.String(),
-			ProductID:     p.ProductID,
-			Quantity:      productIDQuantityMap[p.ProductID],
-			UnitPrice:     discountedPrice[p.ProductID],
-		}); err != nil {
-			return gen.CreateReservation500Response{}, fmt.Errorf("failed to create reservation product: %w", err)
-		}
-	}
-
-	// Commit the transaction
-	if err := tx.Commit(); err != nil {
-		return gen.CreateReservation500Response{}, fmt.Errorf("failed to transaction commit: %w", err)
+		return gen.CreateReservation500Response{}, nil
 	}
 
 	return gen.CreateReservation201JSONResponse{
-		ReservationId: reservationID.String(),
+		ReservationId: reservationID,
 	}, nil
 }
 
@@ -142,4 +102,53 @@ func (ru reservationUseCase) calculateDiscountedPrices(products []repository_gen
 	}
 
 	return discountedPrice
+}
+
+// saveReservation: Save reservation information. Reservation information is saved in reservation_products and reservations, so a transaction is issued.
+func (ru reservationUseCase) saveReservation(ctx *gin.Context, uid string, products []repository_gen_sqlc.GetProductsByIDsRow, productIDQuantityMap map[uint32]uint32, discountedPriceMap map[uint32]uint32) (string, error) {
+
+	// Generate reservation ID
+	reservationID, err := uuid.NewV7()
+	if err != nil {
+		return "", fmt.Errorf("failed to new uuid for reservation: %w", err)
+	}
+
+	// Start a transaction
+	tx, err := ru.db.BeginTx(ctx, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	// Rollback the transaction when the function exits
+	defer func() { _ = tx.Rollback() }()
+
+	// Create a reservation
+	if err := ru.queries.CreateReservation(ctx, tx, repository_gen_sqlc.CreateReservationParams{
+		ReservationID: reservationID.String(),
+		UserID:        uid,
+		ReservedAt:    time.Now(),
+		ExpiredAt:     time.Now().Add(15 * time.Minute), // Expires after 15 minutes
+		Status:        repository_gen_sqlc.ReservationsStatusPending,
+	}); err != nil {
+		return "", fmt.Errorf("failed to create reservation: %w", err)
+	}
+
+	// Create reservation products
+	for _, p := range products {
+		if err := ru.queries.CreateReservationProduct(ctx, tx, repository_gen_sqlc.CreateReservationProductParams{
+			ReservationID: reservationID.String(),
+			ProductID:     p.ProductID,
+			Quantity:      productIDQuantityMap[p.ProductID],
+			UnitPrice:     discountedPriceMap[p.ProductID],
+		}); err != nil {
+			return "", fmt.Errorf("failed to create reservation product: %w", err)
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		return "", fmt.Errorf("failed to transaction commit: %w", err)
+	}
+
+	return reservationID.String(), nil
 }
