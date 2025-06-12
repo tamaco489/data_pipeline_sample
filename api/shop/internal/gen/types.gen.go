@@ -281,10 +281,10 @@ type Profile struct {
 // ReservationRequest 商品IDと個数のセット
 type ReservationRequest = []struct {
 	// ProductId 予約対象となる商品ID
-	ProductId int `json:"product_id"`
+	ProductId uint32 `json:"product_id"`
 
 	// Quantity 予約する商品の個数
-	Quantity int `json:"quantity"`
+	Quantity uint32 `json:"quantity"`
 }
 
 // ReservationResponse 予約作成のレスポンスオブジェクト

@@ -23,3 +23,16 @@ GROUP BY
   p.id, p.name, p.description, p.price, p.vip_only,
   cm.name, dm.name, dm.rate,
   ps.stock_quantity, pi.image_url;
+
+-- name: GetProductsByIDs :many
+SELECT
+  p.id AS product_id,
+  FLOOR(p.price) AS product_price,
+  dm.rate AS discount_rate,
+  ps.stock_quantity AS product_stock_quantity
+FROM products as p
+INNER JOIN category_master as cm ON p.category_id = cm.id
+INNER JOIN product_stocks as ps ON p.id = ps.product_id
+LEFT JOIN discount_master as dm ON p.discount_id = dm.id
+WHERE p.id IN (sqlc.slice('product_ids'))
+ORDER BY p.id;

@@ -8,6 +8,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"strings"
 )
 
 const getProductByID = `-- name: GetProductByID :one
@@ -70,4 +71,63 @@ func (q *Queries) GetProductByID(ctx context.Context, db DBTX, productID uint32)
 		&i.RatingCount,
 	)
 	return i, err
+}
+
+const getProductsByIDs = `-- name: GetProductsByIDs :many
+SELECT
+  p.id AS product_id,
+  FLOOR(p.price) AS product_price,
+  dm.rate AS discount_rate,
+  ps.stock_quantity AS product_stock_quantity
+FROM products as p
+INNER JOIN category_master as cm ON p.category_id = cm.id
+INNER JOIN product_stocks as ps ON p.id = ps.product_id
+LEFT JOIN discount_master as dm ON p.discount_id = dm.id
+WHERE p.id IN (/*SLICE:product_ids*/?)
+ORDER BY p.id
+`
+
+type GetProductsByIDsRow struct {
+	ProductID            uint32        `json:"product_id"`
+	ProductPrice         int32         `json:"product_price"`
+	DiscountRate         sql.NullInt32 `json:"discount_rate"`
+	ProductStockQuantity uint32        `json:"product_stock_quantity"`
+}
+
+func (q *Queries) GetProductsByIDs(ctx context.Context, db DBTX, productIds []uint32) ([]GetProductsByIDsRow, error) {
+	query := getProductsByIDs
+	var queryParams []interface{}
+	if len(productIds) > 0 {
+		for _, v := range productIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:product_ids*/?", strings.Repeat(",?", len(productIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:product_ids*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetProductsByIDsRow
+	for rows.Next() {
+		var i GetProductsByIDsRow
+		if err := rows.Scan(
+			&i.ProductID,
+			&i.ProductPrice,
+			&i.DiscountRate,
+			&i.ProductStockQuantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

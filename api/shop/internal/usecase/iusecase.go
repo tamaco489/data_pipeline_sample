@@ -80,6 +80,29 @@ func NewCreditCardUseCase(
 	}
 }
 
+// ReservationUseCase
+type IReservationUseCase interface {
+	CreateReservation(ctx *gin.Context, uid string, request gen.CreateReservationRequestObject) (gen.CreateReservationResponseObject, error)
+}
+
+type reservationUseCase struct {
+	db      *sql.DB
+	queries repository_gen_sqlc.Queries
+	dbtx    repository_gen_sqlc.DBTX
+}
+
+func NewReservationUseCase(
+	db *sql.DB,
+	queries repository_gen_sqlc.Queries,
+	dbtx repository_gen_sqlc.DBTX,
+) IReservationUseCase {
+	return &reservationUseCase{
+		db:      db,
+		queries: queries,
+		dbtx:    dbtx,
+	}
+}
+
 // ChargeUseCase
 type IChargeUseCase interface {
 	CreateCharge(ctx *gin.Context, request gen.CreateChargeRequestObject) (gen.CreateChargeResponseObject, error)
@@ -89,15 +112,4 @@ type chargeUseCase struct{}
 
 func NewChargeUseCase() IChargeUseCase {
 	return &chargeUseCase{}
-}
-
-// ReservationUseCase
-type IReservationUseCase interface {
-	CreateReservation(ctx *gin.Context, request gen.CreateReservationRequestObject) (gen.CreateReservationResponseObject, error)
-}
-
-type reservationUseCase struct{}
-
-func NewReservationUseCase() IReservationUseCase {
-	return &reservationUseCase{}
 }

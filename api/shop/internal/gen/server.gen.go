@@ -810,6 +810,13 @@ func (response CreateReservation401Response) VisitCreateReservationResponse(w ht
 	return nil
 }
 
+type CreateReservation404Response = NotFoundResponse
+
+func (response CreateReservation404Response) VisitCreateReservationResponse(w http.ResponseWriter) error {
+	w.WriteHeader(404)
+	return nil
+}
+
 type CreateReservation500Response = InternalServerErrorResponse
 
 func (response CreateReservation500Response) VisitCreateReservationResponse(w http.ResponseWriter) error {
