@@ -96,12 +96,19 @@ migrate-status:
 # =================================================================
 # Scripts
 # =================================================================
-.PHONY: seed-products
+.PHONY: reset load
+reset:
+	@echo "Start resetting data..."
+	@bash ./scripts/seeds/reset/reset.sh
+	@echo "Reset completed."
 
-seed-products:
-	@echo "Start seeding products data..."
-	@bash ./scripts/seeds/products/insert.sh
+load: reset
+	@echo "Start loading data..."
+	@bash ./scripts/seeds/loader/loader.sh
 	@echo "Seeding completed."
+
+charge: load
+	go run ./scripts/seeds/charge/main.go
 
 # =================================================================
 # AWS resource operations
