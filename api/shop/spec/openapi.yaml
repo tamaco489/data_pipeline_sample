@@ -812,10 +812,12 @@ components:
         properties:
           product_id:
             type: integer
+            format: uint32
             description: 予約対象となる商品ID
             example: 10001001
           quantity:
             type: integer
+            format: uint32
             description: 予約する商品の個数
             example: 2
     ReservationResponse:
