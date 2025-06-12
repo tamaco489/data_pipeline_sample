@@ -11,6 +11,222 @@ import (
 	"time"
 )
 
+type ChargesStatus string
+
+const (
+	ChargesStatusUnpaid ChargesStatus = "unpaid"
+	ChargesStatusPaid   ChargesStatus = "paid"
+	ChargesStatusFailed ChargesStatus = "failed"
+)
+
+func (e *ChargesStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ChargesStatus(s)
+	case string:
+		*e = ChargesStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ChargesStatus: %T", src)
+	}
+	return nil
+}
+
+type NullChargesStatus struct {
+	ChargesStatus ChargesStatus `json:"charges_status"`
+	Valid         bool          `json:"valid"` // Valid is true if ChargesStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullChargesStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ChargesStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ChargesStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullChargesStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ChargesStatus), nil
+}
+
+func (e ChargesStatus) Valid() bool {
+	switch e {
+	case ChargesStatusUnpaid,
+		ChargesStatusPaid,
+		ChargesStatusFailed:
+		return true
+	}
+	return false
+}
+
+type CreditCardsProviderType string
+
+const (
+	CreditCardsProviderTypeStripe  CreditCardsProviderType = "stripe"
+	CreditCardsProviderTypeFincode CreditCardsProviderType = "fincode"
+	CreditCardsProviderTypeGmoPg   CreditCardsProviderType = "gmo_pg"
+	CreditCardsProviderTypeLinepay CreditCardsProviderType = "linepay"
+)
+
+func (e *CreditCardsProviderType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CreditCardsProviderType(s)
+	case string:
+		*e = CreditCardsProviderType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CreditCardsProviderType: %T", src)
+	}
+	return nil
+}
+
+type NullCreditCardsProviderType struct {
+	CreditCardsProviderType CreditCardsProviderType `json:"credit_cards_provider_type"`
+	Valid                   bool                    `json:"valid"` // Valid is true if CreditCardsProviderType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCreditCardsProviderType) Scan(value interface{}) error {
+	if value == nil {
+		ns.CreditCardsProviderType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CreditCardsProviderType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCreditCardsProviderType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CreditCardsProviderType), nil
+}
+
+func (e CreditCardsProviderType) Valid() bool {
+	switch e {
+	case CreditCardsProviderTypeStripe,
+		CreditCardsProviderTypeFincode,
+		CreditCardsProviderTypeGmoPg,
+		CreditCardsProviderTypeLinepay:
+		return true
+	}
+	return false
+}
+
+type PaymentProviderCustomersProviderType string
+
+const (
+	PaymentProviderCustomersProviderTypeStripe  PaymentProviderCustomersProviderType = "stripe"
+	PaymentProviderCustomersProviderTypeFincode PaymentProviderCustomersProviderType = "fincode"
+	PaymentProviderCustomersProviderTypeGmoPg   PaymentProviderCustomersProviderType = "gmo_pg"
+	PaymentProviderCustomersProviderTypeLinepay PaymentProviderCustomersProviderType = "linepay"
+)
+
+func (e *PaymentProviderCustomersProviderType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PaymentProviderCustomersProviderType(s)
+	case string:
+		*e = PaymentProviderCustomersProviderType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PaymentProviderCustomersProviderType: %T", src)
+	}
+	return nil
+}
+
+type NullPaymentProviderCustomersProviderType struct {
+	PaymentProviderCustomersProviderType PaymentProviderCustomersProviderType `json:"payment_provider_customers_provider_type"`
+	Valid                                bool                                 `json:"valid"` // Valid is true if PaymentProviderCustomersProviderType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPaymentProviderCustomersProviderType) Scan(value interface{}) error {
+	if value == nil {
+		ns.PaymentProviderCustomersProviderType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PaymentProviderCustomersProviderType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPaymentProviderCustomersProviderType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PaymentProviderCustomersProviderType), nil
+}
+
+func (e PaymentProviderCustomersProviderType) Valid() bool {
+	switch e {
+	case PaymentProviderCustomersProviderTypeStripe,
+		PaymentProviderCustomersProviderTypeFincode,
+		PaymentProviderCustomersProviderTypeGmoPg,
+		PaymentProviderCustomersProviderTypeLinepay:
+		return true
+	}
+	return false
+}
+
+type ReservationsStatus string
+
+const (
+	ReservationsStatusPending   ReservationsStatus = "pending"
+	ReservationsStatusConfirmed ReservationsStatus = "confirmed"
+	ReservationsStatusCanceled  ReservationsStatus = "canceled"
+)
+
+func (e *ReservationsStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ReservationsStatus(s)
+	case string:
+		*e = ReservationsStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ReservationsStatus: %T", src)
+	}
+	return nil
+}
+
+type NullReservationsStatus struct {
+	ReservationsStatus ReservationsStatus `json:"reservations_status"`
+	Valid              bool               `json:"valid"` // Valid is true if ReservationsStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullReservationsStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ReservationsStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ReservationsStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullReservationsStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ReservationsStatus), nil
+}
+
+func (e ReservationsStatus) Valid() bool {
+	switch e {
+	case ReservationsStatusPending,
+		ReservationsStatusConfirmed,
+		ReservationsStatusCanceled:
+		return true
+	}
+	return false
+}
+
 type UsersRole string
 
 const (
@@ -126,6 +342,51 @@ type CategoryMaster struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type Charge struct {
+	// 決済ID
+	ID string `json:"id"`
+	// 予約ID
+	ReservationID string `json:"reservation_id"`
+	// 決済を行ったユーザーID
+	UserID string `json:"user_id"`
+	// 請求金額（合計）
+	Amount uint32 `json:"amount"`
+	// 決済ステータス
+	Status ChargesStatus `json:"status"`
+	// 決済日時
+	ChargedAt time.Time `json:"charged_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type ChargeProduct struct {
+	// 決済ID
+	ChargeID string `json:"charge_id"`
+	// 決済対象の商品ID
+	ProductID uint32 `json:"product_id"`
+	// 購入数量
+	Quantity uint32 `json:"quantity"`
+	// 決済時点の単価
+	UnitPrice uint32    `json:"unit_price"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type CreditCard struct {
+	// カードID
+	ID uint32 `json:"id"`
+	// ユーザーID
+	UserID string `json:"user_id"`
+	// 決済事業者が発行するカードID
+	PaymentProviderCardID string `json:"payment_provider_card_id"`
+	// 決済事業者種別
+	ProviderType CreditCardsProviderType `json:"provider_type"`
+	// デフォルトカードか
+	IsDefault bool      `json:"is_default"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type DiscountMaster struct {
 	// 割引ID
 	ID uint32 `json:"id"`
@@ -135,6 +396,17 @@ type DiscountMaster struct {
 	Rate      int32     `json:"rate"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type PaymentProviderCustomer struct {
+	// ユーザーID（自社のユーザーID）
+	UserID string `json:"user_id"`
+	// 決済事業者が発行する顧客ID
+	PaymentProviderCustomerID string `json:"payment_provider_customer_id"`
+	// 決済事業者種別
+	ProviderType PaymentProviderCustomersProviderType `json:"provider_type"`
+	CreatedAt    time.Time                            `json:"created_at"`
+	UpdatedAt    time.Time                            `json:"updated_at"`
 }
 
 type Product struct {
@@ -191,6 +463,34 @@ type ProductStock struct {
 	StockQuantity uint32    `json:"stock_quantity"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+type Reservation struct {
+	// 予約ID
+	ID string `json:"id"`
+	// 予約を行ったユーザーID
+	UserID string `json:"user_id"`
+	// 予約日時
+	ReservedAt time.Time `json:"reserved_at"`
+	// 失効日時
+	ExpiredAt time.Time `json:"expired_at"`
+	// 予約ステータス
+	Status    ReservationsStatus `json:"status"`
+	CreatedAt time.Time          `json:"created_at"`
+	UpdatedAt time.Time          `json:"updated_at"`
+}
+
+type ReservationProduct struct {
+	// 予約ID
+	ReservationID string `json:"reservation_id"`
+	// 予約された商品ID
+	ProductID uint32 `json:"product_id"`
+	// 数量
+	Quantity uint32 `json:"quantity"`
+	// 予約時点の単価
+	UnitPrice uint32    `json:"unit_price"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type User struct {

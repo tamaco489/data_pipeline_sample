@@ -13,20 +13,23 @@ type Controllers struct {
 	config             configuration.Config
 	userUseCase        usecase.IUserUseCase
 	productUseCase     usecase.IProductUseCase
-	chargeUseCase      usecase.IChargeUseCase
+	creditCardUseCase  usecase.ICreditCardUseCase
 	reservationUseCase usecase.IReservationUseCase
+	chargeUseCase      usecase.IChargeUseCase
 }
 
 func NewControllers(cfg configuration.Config, db *sql.DB, queries repository_gen_sqlc.Queries) (*Controllers, error) {
 	userUseCase := usecase.NewUserUseCase(db, queries, db)
 	productUseCase := usecase.NewProductUseCase(db, queries, db)
-	chargeUseCase := usecase.NewChargeUseCase()
+	creditCardUseCase := usecase.NewCreditCardUseCase(db, queries, db)
 	reservationUseCase := usecase.NewReservationUseCase()
+	chargeUseCase := usecase.NewChargeUseCase()
 	return &Controllers{
 		cfg,
 		userUseCase,
 		productUseCase,
-		chargeUseCase,
+		creditCardUseCase,
 		reservationUseCase,
+		chargeUseCase,
 	}, nil
 }

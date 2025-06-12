@@ -23,9 +23,10 @@ SQL_FILES=(
   "./scripts/seeds/loader/products/06_product_ratings.sql"
 
   # payments
-  "./scripts/seeds/loader/payments/01_credit_cards.sql"
-  "./scripts/seeds/loader/payments/02_reservations.sql"
-  "./scripts/seeds/loader/payments/03_reservation_products.sql"
+  "./scripts/seeds/loader/payments/01_payment_provider_customers.sql"
+  "./scripts/seeds/loader/payments/02_credit_cards.sql"
+  "./scripts/seeds/loader/payments/03_reservations.sql"
+  "./scripts/seeds/loader/payments/04_reservation_products.sql"
 )
 
 for sql_file in "${SQL_FILES[@]}"

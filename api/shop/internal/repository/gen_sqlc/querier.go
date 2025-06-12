@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	CreateUser(ctx context.Context, db DBTX, arg CreateUserParams) error
+	GetCreditCardsByUserId(ctx context.Context, db DBTX, uid string) ([]GetCreditCardsByUserIdRow, error)
 	GetProductByID(ctx context.Context, db DBTX, productID uint32) (GetProductByIDRow, error)
 	GetUserByUid(ctx context.Context, db DBTX, uid string) (GetUserByUidRow, error)
 }
