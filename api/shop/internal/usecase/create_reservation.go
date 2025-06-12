@@ -12,7 +12,7 @@ import (
 	repository_gen_sqlc "github.com/tamaco489/data_pipeline_sample/api/shop/internal/repository/gen_sqlc"
 )
 
-func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, request gen.CreateReservationRequestObject) (gen.CreateReservationResponseObject, error) {
+func (ru reservationUseCase) CreateReservation(ctx *gin.Context, uid string, request gen.CreateReservationRequestObject) (gen.CreateReservationResponseObject, error) {
 
 	// Adding a 500ms delay to simulate a performance-challenged API that handles a large number of record operations.
 	time.Sleep(500 * time.Millisecond)
@@ -28,31 +28,19 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 		productIDQuantityMap[p.ProductId] = p.Quantity
 	}
 
-	products, err := u.queries.GetProductsByIDs(ctx, u.dbtx, ids)
+	products, err := ru.queries.GetProductsByIDs(ctx, ru.dbtx, ids)
 	if err != nil {
 		return gen.CreateReservation500Response{}, fmt.Errorf("failed to get products: %w", err)
 	}
 
 	// Validate product availability
-	if err := u.validateProductAvailability(ctx, products, productIDQuantityMap); err != nil {
+	if err := ru.validateProductAvailability(ctx, products, productIDQuantityMap); err != nil {
 		return gen.CreateReservation400Response{}, nil
 	}
 
 	// ************************* Save Reservation Information *************************
-	// If the discount rate is specified for the product, change the price to the discounted price. If the discount rate is not specified, use the product price as is.
-	discountedPrice := make(map[uint32]uint32)
-	for _, p := range products {
-		// If the discount rate is specified, change the price to the discounted price.
-		if p.DiscountRate.Valid {
-			discountedPrice[p.ProductID] = uint32(p.ProductPrice * (100 - p.DiscountRate.Int32) / 100)
-		}
-		// If the discount rate is not specified, use the product price as is.
-		if !p.DiscountRate.Valid {
-			discountedPrice[p.ProductID] = uint32(p.ProductPrice)
-		}
-	}
-
-	slog.InfoContext(ctx, "discountedPrice", "discountedPrice", discountedPrice)
+	// Calculate the discounted price of the product.
+	discountedPrice := ru.calculateDiscountedPrices(products)
 
 	// Save reservation information. Reservation information is saved in reservation_products and reservations, so a transaction is issued.
 	// Generate reservation ID
@@ -62,7 +50,7 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 	}
 
 	// Start a transaction
-	tx, err := u.db.BeginTx(ctx, nil)
+	tx, err := ru.db.BeginTx(ctx, nil)
 	if err != nil {
 		return gen.CreateReservation500Response{}, fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -71,7 +59,7 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 	defer func() { _ = tx.Rollback() }()
 
 	// Create a reservation
-	if err := u.queries.CreateReservation(ctx, tx, repository_gen_sqlc.CreateReservationParams{
+	if err := ru.queries.CreateReservation(ctx, tx, repository_gen_sqlc.CreateReservationParams{
 		ReservationID: reservationID.String(),
 		UserID:        uid,
 		ReservedAt:    time.Now(),
@@ -83,7 +71,7 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 
 	// Create reservation products
 	for _, p := range products {
-		if err := u.queries.CreateReservationProduct(ctx, tx, repository_gen_sqlc.CreateReservationProductParams{
+		if err := ru.queries.CreateReservationProduct(ctx, tx, repository_gen_sqlc.CreateReservationProductParams{
 			ReservationID: reservationID.String(),
 			ProductID:     p.ProductID,
 			Quantity:      productIDQuantityMap[p.ProductID],
@@ -103,7 +91,8 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 	}, nil
 }
 
-func (u reservationUseCase) validateProductAvailability(ctx *gin.Context, products []repository_gen_sqlc.GetProductsByIDsRow, productIDQuantityMap map[uint32]uint32) error {
+// validateProductAvailability: Validate product stock quantities. Check product existence, stock quantity, and order quantity.
+func (ru reservationUseCase) validateProductAvailability(ctx *gin.Context, products []repository_gen_sqlc.GetProductsByIDsRow, productIDQuantityMap map[uint32]uint32) error {
 	// If no product is found, return 404.
 	if len(products) == 0 {
 		slog.ErrorContext(ctx, "product not found")
@@ -135,4 +124,22 @@ func (u reservationUseCase) validateProductAvailability(ctx *gin.Context, produc
 	}
 
 	return nil
+}
+
+// calculateDiscountedPrices: Calculate discounted prices for products based on the discount rate. If no discount rate is set, use the regular product price.
+func (ru reservationUseCase) calculateDiscountedPrices(products []repository_gen_sqlc.GetProductsByIDsRow) map[uint32]uint32 {
+	// If the discount rate is specified for the product, change the price to the discounted price. If the discount rate is not specified, use the product price as is.
+	discountedPrice := make(map[uint32]uint32)
+	for _, p := range products {
+		// If the discount rate is specified, change the price to the discounted price.
+		if p.DiscountRate.Valid {
+			discountedPrice[p.ProductID] = uint32(p.ProductPrice * (100 - p.DiscountRate.Int32) / 100)
+		}
+		// If the discount rate is not specified, use the product price as is.
+		if !p.DiscountRate.Valid {
+			discountedPrice[p.ProductID] = uint32(p.ProductPrice)
+		}
+	}
+
+	return discountedPrice
 }
