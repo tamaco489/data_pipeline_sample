@@ -14,6 +14,7 @@ import (
 
 func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, request gen.CreateReservationRequestObject) (gen.CreateReservationResponseObject, error) {
 
+	// Adding a 500ms delay to simulate a performance-challenged API that handles a large number of record operations.
 	time.Sleep(500 * time.Millisecond)
 
 	// ************************* Product Information Check *************************
@@ -32,34 +33,9 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 		return gen.CreateReservation500Response{}, fmt.Errorf("failed to get products: %w", err)
 	}
 
-	// If no product is found, return 404.
-	if len(products) == 0 {
-		slog.ErrorContext(ctx, "Product not found", "product_ids", ids)
-		return gen.CreateReservation404Response{}, nil
-	}
-
-	for _, p := range products {
-		// If the stock quantity is 0, return 404.
-		if p.ProductStockQuantity == 0 {
-			slog.ErrorContext(
-				ctx,
-				"Product out of stock",
-				"product_id", p.ProductID,
-				"product_stock_quantity", p.ProductStockQuantity,
-			)
-			return gen.CreateReservation404Response{}, nil
-		}
-		// If the requested quantity exceeds the stock quantity, return 400.
-		if p.ProductStockQuantity < productIDQuantityMap[p.ProductID] {
-			slog.ErrorContext(
-				ctx,
-				"Product stock quantity is less than requested quantity",
-				"product_id", p.ProductID,
-				"product_stock_quantity", p.ProductStockQuantity,
-				"requested_quantity", productIDQuantityMap[p.ProductID],
-			)
-			return gen.CreateReservation400Response{}, nil
-		}
+	// Validate product availability
+	if err := u.validateProductAvailability(ctx, products, productIDQuantityMap); err != nil {
+		return gen.CreateReservation400Response{}, nil
 	}
 
 	// ************************* Save Reservation Information *************************
@@ -125,4 +101,38 @@ func (u reservationUseCase) CreateReservation(ctx *gin.Context, uid string, requ
 	return gen.CreateReservation201JSONResponse{
 		ReservationId: reservationID.String(),
 	}, nil
+}
+
+func (u reservationUseCase) validateProductAvailability(ctx *gin.Context, products []repository_gen_sqlc.GetProductsByIDsRow, productIDQuantityMap map[uint32]uint32) error {
+	// If no product is found, return 404.
+	if len(products) == 0 {
+		slog.ErrorContext(ctx, "product not found")
+		return fmt.Errorf("product not found")
+	}
+
+	for _, p := range products {
+		// If the stock quantity is 0
+		if p.ProductStockQuantity == 0 {
+			slog.ErrorContext(
+				ctx,
+				"product out of stock",
+				"product_id", p.ProductID,
+				"product_stock_quantity", p.ProductStockQuantity,
+			)
+			return fmt.Errorf("product out of stock")
+		}
+		// If the requested quantity exceeds the stock quantity
+		if p.ProductStockQuantity < productIDQuantityMap[p.ProductID] {
+			slog.ErrorContext(
+				ctx,
+				"product stock quantity is less than requested quantity",
+				"product_id", p.ProductID,
+				"product_stock_quantity", p.ProductStockQuantity,
+				"requested_quantity", productIDQuantityMap[p.ProductID],
+			)
+			return fmt.Errorf("product stock quantity is less than requested quantity")
+		}
+	}
+
+	return nil
 }
