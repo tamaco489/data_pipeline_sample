@@ -57,6 +57,29 @@ func NewProductUseCase(
 	}
 }
 
+// CreditCardUseCase
+type ICreditCardUseCase interface {
+	GetCreditCards(ctx context.Context, uid string, request gen.GetCreditCardsRequestObject) (gen.GetCreditCardsResponseObject, error)
+}
+
+type creditCardUseCase struct {
+	db      *sql.DB
+	queries repository_gen_sqlc.Queries
+	dbtx    repository_gen_sqlc.DBTX
+}
+
+func NewCreditCardUseCase(
+	db *sql.DB,
+	queries repository_gen_sqlc.Queries,
+	dbtx repository_gen_sqlc.DBTX,
+) ICreditCardUseCase {
+	return &creditCardUseCase{
+		db:      db,
+		queries: queries,
+		dbtx:    dbtx,
+	}
+}
+
 // ChargeUseCase
 type IChargeUseCase interface {
 	CreateCharge(ctx *gin.Context, request gen.CreateChargeRequestObject) (gen.CreateChargeResponseObject, error)

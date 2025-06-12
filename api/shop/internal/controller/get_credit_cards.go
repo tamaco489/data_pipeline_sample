@@ -1,30 +1,19 @@
 package controller
 
 import (
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/tamaco489/data_pipeline_sample/api/shop/internal/gen"
 )
 
 func (c *Controllers) GetCreditCards(ctx *gin.Context, request gen.GetCreditCardsRequestObject) (gen.GetCreditCardsResponseObject, error) {
 
-	time.Sleep(2000 * time.Millisecond)
+	// NOTE: For verification purposes, passing a fixed uid to usecase
+	var uid string = "01975ff1-5ba9-73ca-be9a-75aa6bb00aaf"
 
-	creditCards := []gen.CreditCardList{
-		{
-			IsDefault:        true,
-			MaskedCardNumber: "******123",
-		},
-		{
-			IsDefault:        false,
-			MaskedCardNumber: "******567",
-		},
-		{
-			IsDefault:        false,
-			MaskedCardNumber: "******890",
-		},
+	creditCards, err := c.creditCardUseCase.GetCreditCards(ctx, uid, request)
+	if err != nil {
+		return gen.GetCreditCards500Response{}, err
 	}
 
-	return gen.GetCreditCards200JSONResponse(creditCards), nil
+	return creditCards, nil
 }
