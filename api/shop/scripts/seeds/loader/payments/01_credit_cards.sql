@@ -1,8 +1,8 @@
 INSERT INTO credit_cards (user_id, payment_provider_card_id, is_default)
 VALUES
 -- user_001: 2枚
-('01975ff1-5ba9-73ca-be9a-75aa6bb00aaf', 'card_001_a', TRUE),
-('01975ff1-5ba9-73ca-be9a-75aa6bb00aaf', 'card_001_b', FALSE),
+('01975ff1-5ba9-73ca-be9a-75aa6bb00aaf', '5135da43-1568-4d2b-93be-589bfb330c23', TRUE),
+('01975ff1-5ba9-73ca-be9a-75aa6bb00aaf', 'cc729956-175f-465e-86e9-d3a9b0eeae9a', FALSE),
 
 -- user_002: 3枚
 ('00000000-0000-0000-0000-000000000002', 'card_002_a', TRUE),
