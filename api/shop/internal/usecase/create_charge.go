@@ -18,6 +18,7 @@ func (cu *chargeUseCase) CreateCharge(ctx *gin.Context, uid string, request gen.
 	time.Sleep(1000 * time.Millisecond)
 
 	// *************** [Request validation] ***************
+	// Get pending reservations
 	pendingReservations, err := cu.queries.GetPendingReservationByIDAndUserID(ctx, cu.dbtx, repository_gen_sqlc.GetPendingReservationByIDAndUserIDParams{
 		ReservationID: request.Body.ReservationId,
 		UserID:        uid,
@@ -27,6 +28,7 @@ func (cu *chargeUseCase) CreateCharge(ctx *gin.Context, uid string, request gen.
 		return gen.CreateCharge500Response{}, fmt.Errorf("failed to get pending reservation: %w", err)
 	}
 
+	// Return 404 error if no pending reservations are found
 	if len(pendingReservations) == 0 {
 		return gen.CreateCharge404Response{}, nil
 	}
@@ -43,19 +45,29 @@ func (cu *chargeUseCase) CreateCharge(ctx *gin.Context, uid string, request gen.
 		return gen.CreateCharge409Response{}, nil
 	}
 
-	slog.InfoContext(ctx, "pending reservation", "pendingReservations", pendingReservations)
+	// *************** [Charge processing] ***************
+	// Save charge
+	chargeID, err := cu.saveCharge(ctx, uid, request.Body.ReservationId, pendingReservations)
+	if err != nil {
+		return gen.CreateCharge500Response{}, fmt.Errorf("failed to save charge: %w", err)
+	}
 
+	slog.InfoContext(ctx, "completed charge processing", "reservation_id", request.Body.ReservationId, "charge_id", chargeID)
+
+	return gen.CreateCharge204Response{}, nil
+}
+
+func (cu *chargeUseCase) saveCharge(ctx *gin.Context, uid string, reservationID string, pendingReservations []repository_gen_sqlc.GetPendingReservationByIDAndUserIDRow) (string, error) {
 	// Calculate the amount of the charge
 	var amount uint32 = 0
 	for _, v := range pendingReservations {
 		amount += v.UnitPrice * v.Quantity
 	}
 
-	// *************** [Charge processing] ***************
 	// Start a transaction
 	tx, err := cu.db.BeginTx(ctx, nil)
 	if err != nil {
-		return gen.CreateCharge500Response{}, fmt.Errorf("failed to begin transaction: %w", err)
+		return "", fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	// Rollback the transaction when the function exits
@@ -63,10 +75,10 @@ func (cu *chargeUseCase) CreateCharge(ctx *gin.Context, uid string, request gen.
 
 	// Update the status of reservation_id to confirmed
 	if err := cu.queries.UpdateReservationStatus(ctx, tx, repository_gen_sqlc.UpdateReservationStatusParams{
-		ReservationID: request.Body.ReservationId,
+		ReservationID: reservationID,
 		Status:        repository_gen_sqlc.ReservationsStatusConfirmed,
 	}); err != nil {
-		return gen.CreateCharge500Response{}, fmt.Errorf("failed to update reservation status: %w", err)
+		return "", fmt.Errorf("failed to update reservation status: %w", err)
 	}
 
 	// Generate a charge_id
@@ -75,12 +87,12 @@ func (cu *chargeUseCase) CreateCharge(ctx *gin.Context, uid string, request gen.
 	// Create a charge
 	if err = cu.queries.CreateCharge(ctx, tx, repository_gen_sqlc.CreateChargeParams{
 		ID:            chargeID,
-		ReservationID: request.Body.ReservationId,
+		ReservationID: reservationID,
 		UserID:        uid,
 		Amount:        amount,
 		Status:        repository_gen_sqlc.ChargesStatusUnpaid,
 	}); err != nil {
-		return gen.CreateCharge500Response{}, fmt.Errorf("failed to create charge: %w", err)
+		return "", fmt.Errorf("failed to create charge: %w", err)
 	}
 
 	// Create charge_products
@@ -91,14 +103,14 @@ func (cu *chargeUseCase) CreateCharge(ctx *gin.Context, uid string, request gen.
 			Quantity:  v.Quantity,
 			UnitPrice: v.UnitPrice,
 		}); err != nil {
-			return gen.CreateCharge500Response{}, fmt.Errorf("failed to create charge product: %w", err)
+			return "", fmt.Errorf("failed to create charge product: %w", err)
 		}
 	}
 
 	// Commit the transaction
 	if err := tx.Commit(); err != nil {
-		return gen.CreateCharge500Response{}, fmt.Errorf("failed to transaction commit: %w", err)
+		return "", fmt.Errorf("failed to transaction commit: %w", err)
 	}
 
-	return gen.CreateCharge204Response{}, nil
+	return chargeID, nil
 }
