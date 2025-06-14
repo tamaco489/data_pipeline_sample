@@ -1,44 +1,104 @@
 package usecase
 
 import (
-	"crypto/rand"
 	"fmt"
 	"log/slog"
-	"math/big"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/tamaco489/data_pipeline_sample/api/shop/internal/gen"
+
+	repository_gen_sqlc "github.com/tamaco489/data_pipeline_sample/api/shop/internal/repository/gen_sqlc"
 )
 
-func (u *chargeUseCase) CreateCharge(ctx *gin.Context, request gen.CreateChargeRequestObject) (gen.CreateChargeResponseObject, error) {
+func (cu *chargeUseCase) CreateCharge(ctx *gin.Context, uid string, request gen.CreateChargeRequestObject) (gen.CreateChargeResponseObject, error) {
 
+	// Adding a 1000ms delay to simulate a performance-challenged API that handles a large number of record operations.
 	time.Sleep(1000 * time.Millisecond)
 
-	// order_idを生成
-	orderID := uuid.New().String()
-
-	// user_idを生成（10010001 ~ 3000000までのランダムな数値を設定する）
-	diff := new(big.Int).Sub(new(big.Int).SetUint64(30000000), new(big.Int).SetUint64(10010001))
-	uid, err := rand.Int(rand.Reader, diff)
+	// *************** [Request validation] ***************
+	pendingReservations, err := cu.queries.GetPendingReservationByIDAndUserID(ctx, cu.dbtx, repository_gen_sqlc.GetPendingReservationByIDAndUserIDParams{
+		ReservationID: request.Body.ReservationId,
+		UserID:        uid,
+		Status:        repository_gen_sqlc.ReservationsStatusPending,
+	})
 	if err != nil {
-		return gen.CreateCharge500Response{}, fmt.Errorf("error generating rand: %v", err)
+		return gen.CreateCharge500Response{}, fmt.Errorf("failed to get pending reservation: %w", err)
 	}
 
-	slog.InfoContext(ctx, "sample data by create charge api", "uid", uid.Uint64(), "order_id", orderID)
+	if len(pendingReservations) == 0 {
+		return gen.CreateCharge404Response{}, nil
+	}
 
-	// *************** [TODO] ***************
-	// todo: transaction を使って、以下の処理を行う
-	// 1. reservations テーブルの status を confirmed に更新
-	// 2. charges テーブルにデータを登録
-	// 3. charge_products テーブルにデータを登録
-	// 4. エラーが発生した場合は rollback、全ての処理が成功した場合は commit
+	// Return 409 error if a charge already exists for the reservation_id to prevent duplicate charges
+	exists, err := cu.queries.ExistsChargeByReservationIDAndUserID(ctx, cu.dbtx, repository_gen_sqlc.ExistsChargeByReservationIDAndUserIDParams{
+		ReservationID: request.Body.ReservationId,
+		UserID:        uid,
+	})
+	if err != nil {
+		return gen.CreateCharge500Response{}, fmt.Errorf("failed to check if charge exists: %w", err)
+	}
+	if exists {
+		return gen.CreateCharge409Response{}, nil
+	}
 
-	// *************** [リクエストの検証] ***************
-	// todo: reservation_id の存在確認、予約ステータスが confirmed かの確認、合致しない場合は403を返す。※where句には reservation_id と user_id を指定
+	slog.InfoContext(ctx, "pending reservation", "pendingReservations", pendingReservations)
 
-	// todo: 有効な reservation_id に紐づく商品情報を取得し、その商品情報をもとに charges, charge_products テーブルにデータを登録する。
+	// Calculate the amount of the charge
+	var amount uint32 = 0
+	for _, v := range pendingReservations {
+		amount += v.UnitPrice * v.Quantity
+	}
+
+	// *************** [Charge processing] ***************
+	// Start a transaction
+	tx, err := cu.db.BeginTx(ctx, nil)
+	if err != nil {
+		return gen.CreateCharge500Response{}, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	// Rollback the transaction when the function exits
+	defer func() { _ = tx.Rollback() }()
+
+	// Update the status of reservation_id to confirmed
+	if err := cu.queries.UpdateReservationStatus(ctx, tx, repository_gen_sqlc.UpdateReservationStatusParams{
+		ReservationID: request.Body.ReservationId,
+		Status:        repository_gen_sqlc.ReservationsStatusConfirmed,
+	}); err != nil {
+		return gen.CreateCharge500Response{}, fmt.Errorf("failed to update reservation status: %w", err)
+	}
+
+	// Generate a charge_id
+	chargeID := uuid.New().String()
+
+	// Create a charge
+	if err = cu.queries.CreateCharge(ctx, tx, repository_gen_sqlc.CreateChargeParams{
+		ID:            chargeID,
+		ReservationID: request.Body.ReservationId,
+		UserID:        uid,
+		Amount:        amount,
+		Status:        repository_gen_sqlc.ChargesStatusUnpaid,
+	}); err != nil {
+		return gen.CreateCharge500Response{}, fmt.Errorf("failed to create charge: %w", err)
+	}
+
+	// Create charge_products
+	for _, v := range pendingReservations {
+		if err = cu.queries.CreateChargeProduct(ctx, tx, repository_gen_sqlc.CreateChargeProductParams{
+			ChargeID:  chargeID,
+			ProductID: v.ProductID,
+			Quantity:  v.Quantity,
+			UnitPrice: v.UnitPrice,
+		}); err != nil {
+			return gen.CreateCharge500Response{}, fmt.Errorf("failed to create charge product: %w", err)
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		return gen.CreateCharge500Response{}, fmt.Errorf("failed to transaction commit: %w", err)
+	}
 
 	return gen.CreateCharge204Response{}, nil
 }
