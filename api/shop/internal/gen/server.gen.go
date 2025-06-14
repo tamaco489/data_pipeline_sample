@@ -734,6 +734,13 @@ func (response CreateCharge401Response) VisitCreateChargeResponse(w http.Respons
 	return nil
 }
 
+type CreateCharge404Response = NotFoundResponse
+
+func (response CreateCharge404Response) VisitCreateChargeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(404)
+	return nil
+}
+
 type CreateCharge500Response = InternalServerErrorResponse
 
 func (response CreateCharge500Response) VisitCreateChargeResponse(w http.ResponseWriter) error {
