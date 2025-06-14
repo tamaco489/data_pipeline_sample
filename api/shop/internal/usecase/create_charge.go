@@ -28,5 +28,17 @@ func (u *chargeUseCase) CreateCharge(ctx *gin.Context, request gen.CreateChargeR
 
 	slog.InfoContext(ctx, "sample data by create charge api", "uid", uid.Uint64(), "order_id", orderID)
 
+	// *************** [TODO] ***************
+	// todo: transaction を使って、以下の処理を行う
+	// 1. reservations テーブルの status を confirmed に更新
+	// 2. charges テーブルにデータを登録
+	// 3. charge_products テーブルにデータを登録
+	// 4. エラーが発生した場合は rollback、全ての処理が成功した場合は commit
+
+	// *************** [リクエストの検証] ***************
+	// todo: reservation_id の存在確認、予約ステータスが confirmed かの確認、合致しない場合は403を返す。※where句には reservation_id と user_id を指定
+
+	// todo: 有効な reservation_id に紐づく商品情報を取得し、その商品情報をもとに charges, charge_products テーブルにデータを登録する。
+
 	return gen.CreateCharge204Response{}, nil
 }
