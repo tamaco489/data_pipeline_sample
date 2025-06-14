@@ -133,3 +133,17 @@ func (q *Queries) GetPendingReservationByIDAndUserID(ctx context.Context, db DBT
 	}
 	return items, nil
 }
+
+const updateReservationStatus = `-- name: UpdateReservationStatus :exec
+UPDATE reservations SET status = ? WHERE id = ?
+`
+
+type UpdateReservationStatusParams struct {
+	Status        ReservationsStatus `json:"status"`
+	ReservationID string             `json:"reservation_id"`
+}
+
+func (q *Queries) UpdateReservationStatus(ctx context.Context, db DBTX, arg UpdateReservationStatusParams) error {
+	_, err := db.ExecContext(ctx, updateReservationStatus, arg.Status, arg.ReservationID)
+	return err
+}

@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	CreateCharge(ctx context.Context, db DBTX, arg CreateChargeParams) error
 	CreateReservation(ctx context.Context, db DBTX, arg CreateReservationParams) error
 	CreateReservationProduct(ctx context.Context, db DBTX, arg CreateReservationProductParams) error
 	CreateUser(ctx context.Context, db DBTX, arg CreateUserParams) error
@@ -17,6 +18,7 @@ type Querier interface {
 	GetProductByID(ctx context.Context, db DBTX, productID uint32) (GetProductByIDRow, error)
 	GetProductsByIDs(ctx context.Context, db DBTX, productIds []uint32) ([]GetProductsByIDsRow, error)
 	GetUserByUid(ctx context.Context, db DBTX, uid string) (GetUserByUidRow, error)
+	UpdateReservationStatus(ctx context.Context, db DBTX, arg UpdateReservationStatusParams) error
 }
 
 var _ Querier = (*Queries)(nil)

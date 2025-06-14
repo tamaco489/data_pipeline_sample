@@ -41,3 +41,6 @@ WHERE
   AND rs.status = sqlc.arg('status')
   AND rs.expired_at > CURRENT_TIMESTAMP
 ORDER BY rp.product_id;
+
+-- name: UpdateReservationStatus :exec
+UPDATE reservations SET status = sqlc.arg('status') WHERE id = sqlc.arg('reservation_id');
