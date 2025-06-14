@@ -259,12 +259,13 @@ create-reservations: ## ローカル向け: 予約の情報を作成
 
 # Charge API
 .PHONY: create-charge get-charge-histories
+# sample: make create-charge RESERVATION_ID=01976fe3-e429-7803-bfdc-fa4216f0c6b0
 create-charge: ## ローカル向け: 決済の情報を作成
 	curl -i -sX 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/charges' \
 		-H 'accept: application/json' \
 		-H 'Content-Type: application/json' \
-		-d '{"reservation_id": "9f9213b2-9687-6910-d2ec-3a247582be2d"}'
+		-d '{"reservation_id": "$(RESERVATION_ID)"}'
 
 get-charge-histories:
 	curl -sX 'GET' \

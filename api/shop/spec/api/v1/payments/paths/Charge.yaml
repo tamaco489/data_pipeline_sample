@@ -1,7 +1,7 @@
 post:
   tags:
-    - v1
-    - payments/charges
+  - v1
+  - payments/charges
   summary: 商品の購入API
   description: |-
     新しい支払い（チャージ）を登録します。
@@ -20,5 +20,9 @@ post:
       $ref: '../../../responses/BadRequest.yaml'
     '401':
       $ref: '../../../responses/Unauthorized.yaml'
+    '404':
+      $ref: '../../../responses/NotFound.yaml'
+    '409':
+      $ref: '../../../responses/AlreadyExists.yaml'
     '500':
       $ref: '../../../responses/InternalServerError.yaml'

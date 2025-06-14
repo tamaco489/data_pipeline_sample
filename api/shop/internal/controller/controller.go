@@ -23,7 +23,7 @@ func NewControllers(cfg configuration.Config, db *sql.DB, queries repository_gen
 	productUseCase := usecase.NewProductUseCase(db, queries, db)
 	creditCardUseCase := usecase.NewCreditCardUseCase(db, queries, db)
 	reservationUseCase := usecase.NewReservationUseCase(db, queries, db)
-	chargeUseCase := usecase.NewChargeUseCase()
+	chargeUseCase := usecase.NewChargeUseCase(db, queries, db)
 	return &Controllers{
 		cfg,
 		userUseCase,

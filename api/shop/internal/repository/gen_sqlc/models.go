@@ -353,10 +353,10 @@ type Charge struct {
 	Amount uint32 `json:"amount"`
 	// 決済ステータス
 	Status ChargesStatus `json:"status"`
-	// 決済日時
-	ChargedAt time.Time `json:"charged_at"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	// デフォルトはNULL。決済APIを実行し売上が確定した際にその日時に更新
+	ChargedAt sql.NullTime `json:"charged_at"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
 }
 
 type ChargeProduct struct {

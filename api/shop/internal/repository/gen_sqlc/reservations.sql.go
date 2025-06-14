@@ -76,3 +76,74 @@ func (q *Queries) CreateReservationProduct(ctx context.Context, db DBTX, arg Cre
 	)
 	return err
 }
+
+const getPendingReservationByIDAndUserID = `-- name: GetPendingReservationByIDAndUserID :many
+SELECT
+  rp.product_id,
+  rp.quantity,
+  rp.unit_price,
+  rs.expired_at
+FROM reservations AS rs
+INNER JOIN reservation_products AS rp ON rs.id = rp.reservation_id
+WHERE
+  rs.id = ?
+  AND rs.user_id = ?
+  AND rs.status = ?
+  AND rs.expired_at > CURRENT_TIMESTAMP
+ORDER BY rp.product_id
+`
+
+type GetPendingReservationByIDAndUserIDParams struct {
+	ReservationID string             `json:"reservation_id"`
+	UserID        string             `json:"user_id"`
+	Status        ReservationsStatus `json:"status"`
+}
+
+type GetPendingReservationByIDAndUserIDRow struct {
+	ProductID uint32    `json:"product_id"`
+	Quantity  uint32    `json:"quantity"`
+	UnitPrice uint32    `json:"unit_price"`
+	ExpiredAt time.Time `json:"expired_at"`
+}
+
+func (q *Queries) GetPendingReservationByIDAndUserID(ctx context.Context, db DBTX, arg GetPendingReservationByIDAndUserIDParams) ([]GetPendingReservationByIDAndUserIDRow, error) {
+	rows, err := db.QueryContext(ctx, getPendingReservationByIDAndUserID, arg.ReservationID, arg.UserID, arg.Status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPendingReservationByIDAndUserIDRow
+	for rows.Next() {
+		var i GetPendingReservationByIDAndUserIDRow
+		if err := rows.Scan(
+			&i.ProductID,
+			&i.Quantity,
+			&i.UnitPrice,
+			&i.ExpiredAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateReservationStatus = `-- name: UpdateReservationStatus :exec
+UPDATE reservations SET status = ? WHERE id = ?
+`
+
+type UpdateReservationStatusParams struct {
+	Status        ReservationsStatus `json:"status"`
+	ReservationID string             `json:"reservation_id"`
+}
+
+func (q *Queries) UpdateReservationStatus(ctx context.Context, db DBTX, arg UpdateReservationStatusParams) error {
+	_, err := db.ExecContext(ctx, updateReservationStatus, arg.Status, arg.ReservationID)
+	return err
+}
