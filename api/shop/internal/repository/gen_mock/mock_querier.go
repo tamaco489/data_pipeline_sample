@@ -55,6 +55,20 @@ func (mr *MockQuerierMockRecorder) CreateCharge(ctx, db, arg any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCharge", reflect.TypeOf((*MockQuerier)(nil).CreateCharge), ctx, db, arg)
 }
 
+// CreateChargeProduct mocks base method.
+func (m *MockQuerier) CreateChargeProduct(ctx context.Context, db repository.DBTX, arg repository.CreateChargeProductParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateChargeProduct", ctx, db, arg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateChargeProduct indicates an expected call of CreateChargeProduct.
+func (mr *MockQuerierMockRecorder) CreateChargeProduct(ctx, db, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChargeProduct", reflect.TypeOf((*MockQuerier)(nil).CreateChargeProduct), ctx, db, arg)
+}
+
 // CreateReservation mocks base method.
 func (m *MockQuerier) CreateReservation(ctx context.Context, db repository.DBTX, arg repository.CreateReservationParams) error {
 	m.ctrl.T.Helper()

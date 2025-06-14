@@ -44,6 +44,37 @@ func (q *Queries) CreateCharge(ctx context.Context, db DBTX, arg CreateChargePar
 	return err
 }
 
+const createChargeProduct = `-- name: CreateChargeProduct :exec
+INSERT INTO charge_products (
+  charge_id,
+  product_id,
+  quantity,
+  unit_price
+) VALUES (
+  ?,
+  ?,
+  ?,
+  ?
+)
+`
+
+type CreateChargeProductParams struct {
+	ChargeID  string `json:"charge_id"`
+	ProductID uint32 `json:"product_id"`
+	Quantity  uint32 `json:"quantity"`
+	UnitPrice uint32 `json:"unit_price"`
+}
+
+func (q *Queries) CreateChargeProduct(ctx context.Context, db DBTX, arg CreateChargeProductParams) error {
+	_, err := db.ExecContext(ctx, createChargeProduct,
+		arg.ChargeID,
+		arg.ProductID,
+		arg.Quantity,
+		arg.UnitPrice,
+	)
+	return err
+}
+
 const existsChargeByReservationIDAndUserID = `-- name: ExistsChargeByReservationIDAndUserID :one
 SELECT EXISTS(
   SELECT 1

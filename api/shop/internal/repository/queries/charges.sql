@@ -20,3 +20,16 @@ INSERT INTO charges (
   sqlc.arg('amount'),
   sqlc.arg('status')
 );
+
+-- name: CreateChargeProduct :exec
+INSERT INTO charge_products (
+  charge_id,
+  product_id,
+  quantity,
+  unit_price
+) VALUES (
+  sqlc.arg('charge_id'),
+  sqlc.arg('product_id'),
+  sqlc.arg('quantity'),
+  sqlc.arg('unit_price')
+);

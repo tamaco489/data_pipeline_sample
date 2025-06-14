@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	CreateCharge(ctx context.Context, db DBTX, arg CreateChargeParams) error
+	CreateChargeProduct(ctx context.Context, db DBTX, arg CreateChargeProductParams) error
 	CreateReservation(ctx context.Context, db DBTX, arg CreateReservationParams) error
 	CreateReservationProduct(ctx context.Context, db DBTX, arg CreateReservationProductParams) error
 	CreateUser(ctx context.Context, db DBTX, arg CreateUserParams) error
