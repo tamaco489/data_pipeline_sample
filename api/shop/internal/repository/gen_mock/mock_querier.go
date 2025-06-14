@@ -98,6 +98,21 @@ func (mr *MockQuerierMockRecorder) GetCreditCardsByUserId(ctx, db, uid any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCreditCardsByUserId", reflect.TypeOf((*MockQuerier)(nil).GetCreditCardsByUserId), ctx, db, uid)
 }
 
+// GetPendingReservationByIDAndUserID mocks base method.
+func (m *MockQuerier) GetPendingReservationByIDAndUserID(ctx context.Context, db repository.DBTX, arg repository.GetPendingReservationByIDAndUserIDParams) ([]repository.GetPendingReservationByIDAndUserIDRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPendingReservationByIDAndUserID", ctx, db, arg)
+	ret0, _ := ret[0].([]repository.GetPendingReservationByIDAndUserIDRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPendingReservationByIDAndUserID indicates an expected call of GetPendingReservationByIDAndUserID.
+func (mr *MockQuerierMockRecorder) GetPendingReservationByIDAndUserID(ctx, db, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPendingReservationByIDAndUserID", reflect.TypeOf((*MockQuerier)(nil).GetPendingReservationByIDAndUserID), ctx, db, arg)
+}
+
 // GetProductByID mocks base method.
 func (m *MockQuerier) GetProductByID(ctx context.Context, db repository.DBTX, productID uint32) (repository.GetProductByIDRow, error) {
 	m.ctrl.T.Helper()
