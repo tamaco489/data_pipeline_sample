@@ -105,11 +105,23 @@ func NewReservationUseCase(
 
 // ChargeUseCase
 type IChargeUseCase interface {
-	CreateCharge(ctx *gin.Context, request gen.CreateChargeRequestObject) (gen.CreateChargeResponseObject, error)
+	CreateCharge(ctx *gin.Context, uid string, request gen.CreateChargeRequestObject) (gen.CreateChargeResponseObject, error)
 }
 
-type chargeUseCase struct{}
+type chargeUseCase struct {
+	db      *sql.DB
+	queries repository_gen_sqlc.Queries
+	dbtx    repository_gen_sqlc.DBTX
+}
 
-func NewChargeUseCase() IChargeUseCase {
-	return &chargeUseCase{}
+func NewChargeUseCase(
+	db *sql.DB,
+	queries repository_gen_sqlc.Queries,
+	dbtx repository_gen_sqlc.DBTX,
+) IChargeUseCase {
+	return &chargeUseCase{
+		db:      db,
+		queries: queries,
+		dbtx:    dbtx,
+	}
 }
