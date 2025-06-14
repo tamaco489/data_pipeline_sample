@@ -12,13 +12,11 @@ INSERT INTO charges (
   reservation_id,
   user_id,
   amount,
-  status,
-  charged_at
+  status
 ) VALUES (
   sqlc.arg('id'),
   sqlc.arg('reservation_id'),
   sqlc.arg('user_id'),
   sqlc.arg('amount'),
-  sqlc.arg('status'),
-  sqlc.arg('charged_at')
+  sqlc.arg('status')
 );

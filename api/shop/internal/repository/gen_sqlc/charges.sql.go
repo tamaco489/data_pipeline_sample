@@ -7,7 +7,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createCharge = `-- name: CreateCharge :exec
@@ -16,10 +15,8 @@ INSERT INTO charges (
   reservation_id,
   user_id,
   amount,
-  status,
-  charged_at
+  status
 ) VALUES (
-  ?,
   ?,
   ?,
   ?,
@@ -34,7 +31,6 @@ type CreateChargeParams struct {
 	UserID        string        `json:"user_id"`
 	Amount        uint32        `json:"amount"`
 	Status        ChargesStatus `json:"status"`
-	ChargedAt     sql.NullTime  `json:"charged_at"`
 }
 
 func (q *Queries) CreateCharge(ctx context.Context, db DBTX, arg CreateChargeParams) error {
@@ -44,7 +40,6 @@ func (q *Queries) CreateCharge(ctx context.Context, db DBTX, arg CreateChargePar
 		arg.UserID,
 		arg.Amount,
 		arg.Status,
-		arg.ChargedAt,
 	)
 	return err
 }
