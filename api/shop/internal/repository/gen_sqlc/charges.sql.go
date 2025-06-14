@@ -7,7 +7,7 @@ package repository
 
 import (
 	"context"
-	"time"
+	"database/sql"
 )
 
 const createCharge = `-- name: CreateCharge :exec
@@ -34,7 +34,7 @@ type CreateChargeParams struct {
 	UserID        string        `json:"user_id"`
 	Amount        uint32        `json:"amount"`
 	Status        ChargesStatus `json:"status"`
-	ChargedAt     time.Time     `json:"charged_at"`
+	ChargedAt     sql.NullTime  `json:"charged_at"`
 }
 
 func (q *Queries) CreateCharge(ctx context.Context, db DBTX, arg CreateChargeParams) error {
@@ -47,4 +47,25 @@ func (q *Queries) CreateCharge(ctx context.Context, db DBTX, arg CreateChargePar
 		arg.ChargedAt,
 	)
 	return err
+}
+
+const existsChargeByReservationIDAndUserID = `-- name: ExistsChargeByReservationIDAndUserID :one
+SELECT EXISTS(
+  SELECT 1
+  FROM charges
+  WHERE reservation_id = ?
+    AND user_id = ?
+)
+`
+
+type ExistsChargeByReservationIDAndUserIDParams struct {
+	ReservationID string `json:"reservation_id"`
+	UserID        string `json:"user_id"`
+}
+
+func (q *Queries) ExistsChargeByReservationIDAndUserID(ctx context.Context, db DBTX, arg ExistsChargeByReservationIDAndUserIDParams) (bool, error) {
+	row := db.QueryRowContext(ctx, existsChargeByReservationIDAndUserID, arg.ReservationID, arg.UserID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

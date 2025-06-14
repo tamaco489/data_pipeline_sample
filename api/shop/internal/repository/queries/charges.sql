@@ -1,3 +1,11 @@
+-- name: ExistsChargeByReservationIDAndUserID :one
+SELECT EXISTS(
+  SELECT 1
+  FROM charges
+  WHERE reservation_id = sqlc.arg('reservation_id')
+    AND user_id = sqlc.arg('user_id')
+);
+
 -- name: CreateCharge :exec
 INSERT INTO charges (
   id,
