@@ -12,5 +12,5 @@ variable "project" {
 
 locals {
   fqn               = "${var.env}-${var.project}"
-  core_db_secret_id = "${var.project}/${var.env}/core-db"
+  core_db_secret_id = "core/${var.env}/rds-cluster"
 }
