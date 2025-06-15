@@ -22,6 +22,14 @@ data "terraform_remote_state" "network" {
   }
 }
 
+data "terraform_remote_state" "credential_core_db" {
+  backend = "s3"
+  config = {
+    bucket = "${var.env}-data-pipeline-sample-tfstate"
+    key    = "credential/core_db/terraform.tfstate"
+  }
+}
+
 # AWS Managed Key
 data "aws_kms_key" "secretsmanager" {
   key_id = "alias/aws/secretsmanager"
