@@ -7,12 +7,10 @@ variable "env" {
 variable "project" {
   description = "The project name"
   type        = string
-  default     = "fanout-architecture"
+  default     = "data-pipeline-sample"
 }
 
 locals {
-  fqn                 = "${var.env}-${var.project}"
-  shop_api            = "${var.env}-shop-api"
-  slack_message_batch = "${var.env}-slack-message-batch"
-  line_message_batch  = "${var.env}-line-message-batch"
+  fqn      = "${var.env}-${var.project}"
+  shop_api = "${var.env}-shop-api"
 }
