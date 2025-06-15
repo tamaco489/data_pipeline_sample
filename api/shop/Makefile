@@ -283,7 +283,7 @@ stg-api-all-request: stg-healthcheck sleep \
 	stg-create-charge sleep
 
 .PHONY: stg-healthcheck
-# sample: make stg-healthcheck API_DOMAIN=api.halu-ulala-proto.com
+# sample: make stg-healthcheck API_DOMAIN=api.domain_name.com
 stg-healthcheck: ## stg向け: healthcheck APIのリクエスト
 	curl -i -X 'GET' \
 		'https://$(API_DOMAIN)/shop/v1/healthcheck' \
