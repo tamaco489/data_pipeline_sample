@@ -276,8 +276,6 @@ get-charge-histories:
 # =================================================================
 # API request operations (stg)
 # =================================================================
-AWS_API_DOMAIN := <api_domain>
-
 stg-api-all-request: stg-healthcheck sleep \
 	stg-create-user sleep \
 	stg-get-me sleep \
@@ -285,34 +283,35 @@ stg-api-all-request: stg-healthcheck sleep \
 	stg-create-charge sleep
 
 .PHONY: stg-healthcheck
+# sample: make stg-healthcheck API_DOMAIN=api.domain_name.com
 stg-healthcheck: ## stg向け: healthcheck APIのリクエスト
 	curl -i -X 'GET' \
-		'https://${AWS_API_DOMAIN}/shop/v1/healthcheck' \
+		'https://$(API_DOMAIN)/shop/v1/healthcheck' \
 		-H 'accept: application/json'
 
 .PHONY: stg-create-user stg-get-me stg-create-product-comment
 stg-create-user: ## stg向け: ユーザーの作成
 	curl -i -X 'POST' \
-		'https://${AWS_API_DOMAIN}/shop/v1/users' \
+		'https://$(API_DOMAIN)/shop/v1/users' \
 		-H 'accept: application/json' \
 		-d ''
 
 stg-get-me: ## stg向け: ユーザーの情報を取得
 	curl -i -X 'GET' \
-		'https://${AWS_API_DOMAIN}/shop/v1/users/me' \
+		'https://$(API_DOMAIN)/shop/v1/users/me' \
 		-H 'accept: application/json'
 
 .PHONY: stg-create-reservations stg-create-charge
 stg-create-reservations:
 	curl -i -sX 'POST' \
-		'https://${AWS_API_DOMAIN}/shop/v1/payments/reservations' \
+		'https://$(API_DOMAIN)/shop/v1/payments/reservations' \
 		-H 'accept: application/json' \
 		-H 'Content-Type: application/json' \
 		-d '[{"product_id": 10001001, "quantity": 2}, {"product_id": 10001002, "quantity": 3}]'
 
 stg-create-charge: ## stg向け: 決済の情報を作成
 	curl -i -sX 'POST' \
-		'https://${AWS_API_DOMAIN}/shop/v1/payments/charges' \
+		'https://$(API_DOMAIN)/shop/v1/payments/charges' \
 		-H 'accept: application/json' \
 		-H 'Content-Type: application/json' \
 		-d '{"reservation_id": "9f9213b2-9687-6910-d2ec-3a247582be2d"}'
