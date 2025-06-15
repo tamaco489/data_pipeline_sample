@@ -1,4 +1,4 @@
-# NOTE: Secret Manager の接続するための VPCエンドポイント (Secret Manager 側に定義すると循環参照になるため `service/api/shop/` に定義)
+# NOTE: VPC endpoint for connecting to Secrets Manager (defined in `service/api/shop/` to avoid circular reference if defined on the Secrets Manager side)
 resource "aws_vpc_endpoint" "secrets_manager_endpoint" {
   vpc_id              = data.terraform_remote_state.network.outputs.vpc.id
   service_name        = "com.amazonaws.ap-northeast-1.secretsmanager"
