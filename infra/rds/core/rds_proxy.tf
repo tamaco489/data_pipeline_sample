@@ -6,7 +6,7 @@ resource "aws_db_proxy" "core" {
   role_arn               = aws_iam_role.rds_proxy.arn
   vpc_security_group_ids = [aws_security_group.rds_proxy.id]
   vpc_subnet_ids         = data.terraform_remote_state.network.outputs.vpc.public_subnet_ids
-  # vpc_subnet_ids         = data.terraform_remote_state.network.outputs.vpc.private_subnet_ids # 本番運用中は private subnet にするのが better
+  # vpc_subnet_ids         = data.terraform_remote_state.network.outputs.vpc.private_subnet_ids # 本番運用中は private subnet にしておくのが better
 
   auth {
     auth_scheme = "SECRETS"
