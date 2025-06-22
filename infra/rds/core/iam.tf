@@ -34,20 +34,6 @@ data "aws_iam_policy_document" "rds_proxy" {
       data.terraform_remote_state.credential_core_db.outputs.core_db.arn,
     ]
   }
-  statement {
-    actions = [
-      "kms:Decrypt"
-    ]
-    effect = "Allow"
-    resources = [
-      data.terraform_remote_state.credential_core_db.outputs.core_db.arn,
-    ]
-    condition {
-      test     = "StringEquals"
-      variable = "kms:ViaService"
-      values   = ["secretsmanager.ap-northeast-1.amazonaws.com"]
-    }
-  }
 }
 
 resource "aws_iam_policy" "rds_proxy" {
