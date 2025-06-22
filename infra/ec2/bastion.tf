@@ -13,8 +13,21 @@ resource "aws_instance" "bastion" {
     ssh_pwauth: 0
     repo_upgrade: minimal
     runcmd:
+      # MySQL install
       - sudo dnf -y install https://dev.mysql.com/get/mysql84-community-release-el9-1.noarch.rpm
       - sudo dnf -y install mysql mysql-community-client mysql-community-server
+
+      # Git install
+      - sudo dnf install -y git
+
+      # Go 1.24.2 install
+      - curl -LO https://go.dev/dl/go1.24.2.linux-amd64.tar.gz
+      - sudo rm -rf /usr/local/go
+      - sudo tar -C /usr/local -xzf go1.24.2.linux-amd64.tar.gz
+
+      # Setup workspace
+      - mkdir -p /home/ssm-user/workspace
+      - git clone https://github.com/tamaco489/data_pipeline_sample.git /home/ssm-user/workspace/data_pipeline_sample
   EOF
 }
 
