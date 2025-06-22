@@ -69,3 +69,12 @@ encrypt-secret:
 decrypt-secret:
 	@AWS_PROFILE=$(AWS_PROFILE) AWS_DEFAULT_REGION=$(AWS_REGION) \
 		sops --kms $(SOPS_KMS_ARN) -d tfvars/$(ENV)_$(CREDENTIAL_FILE_NAME).yaml
+
+
+# =====================================================================================
+# ssm
+# =====================================================================================
+.PHONY: ssm-start-session
+ssm-start-session:
+	@AWS_PROFILE=$(AWS_PROFILE) AWS_DEFAULT_REGION=$(AWS_REGION) \
+		aws ssm start-session --target $(TARGET_ID)
