@@ -104,7 +104,7 @@ load: reset ## DBデータの初期化
 	MYSQL_HOST=$(MYSQL_HOST) MYSQL_PORT=$(MYSQL_PORT) MYSQL_USER=$(MYSQL_USER) MYSQL_PASSWORD=$(MYSQL_PASSWORD) MYSQL_DATABASE=$(MYSQL_DATABASE) bash ./scripts/seeds/loader/loader.sh
 
 charge: load ## 決済処理データの初期化
-	go run ./scripts/seeds/charge/main.go
+	MYSQL_HOST=$(MYSQL_HOST) MYSQL_PORT=$(MYSQL_PORT) MYSQL_USER=$(MYSQL_USER) MYSQL_PASSWORD=$(MYSQL_PASSWORD) MYSQL_DATABASE=$(MYSQL_DATABASE) go run ./scripts/seeds/charge/main.go
 
 # stg向け
 .PHONY: stg-migrate-up stg-migrate-down
