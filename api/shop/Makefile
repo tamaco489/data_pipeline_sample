@@ -99,12 +99,12 @@ migrate-status: ## マイグレーションの状態を表示
 .PHONY: reset load
 reset: ## DBデータのリセット
 	@echo "Start resetting data..."
-	@bash ./scripts/seeds/reset/reset.sh
+	MYSQL_HOST=$(MYSQL_HOST) MYSQL_PORT=$(MYSQL_PORT) MYSQL_USER=$(MYSQL_USER) MYSQL_PASSWORD=$(MYSQL_PASSWORD) MYSQL_DATABASE=$(MYSQL_DATABASE) bash ./scripts/seeds/reset/reset.sh
 	@echo "Reset completed."
 
 load: reset ## DBデータの初期化
 	@echo "Start loading data..."
-	@bash ./scripts/seeds/loader/loader.sh
+	MYSQL_HOST=$(MYSQL_HOST) MYSQL_PORT=$(MYSQL_PORT) MYSQL_USER=$(MYSQL_USER) MYSQL_PASSWORD=$(MYSQL_PASSWORD) MYSQL_DATABASE=$(MYSQL_DATABASE) bash ./scripts/seeds/loader/loader.sh
 	@echo "Seeding completed."
 
 charge: load ## 決済処理データの初期化
