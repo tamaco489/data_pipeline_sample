@@ -62,14 +62,6 @@ down: ## コンテナの停止
 logs: ## コンテナのログを表示
 	docker compose logs -f shop-api
 
-# secret manager
-.PHONY: list-secrets get-secret-value
-list-secrets: ## シークレットマネージャーのシークレットを一覧表示
-	docker exec -it core-localstack awslocal secretsmanager list-secrets --region ap-northeast-1
-
-get-secret-value: ## シークレットマネージャーのシークレットを取得
-	docker exec -it core-localstack awslocal secretsmanager get-secret-value --secret-id core/dev/rds-cluster --region ap-northeast-1
-
 
 # =================================================================
 # MySQL operations
@@ -108,10 +100,10 @@ charge: load ## 決済処理データの初期化
 
 # stg向け
 .PHONY: stg-migrate-up stg-migrate-down
-stg-migrate-up: ## stg向け: マイグレーションを適用
+stg-migrate-up: ## stg: マイグレーションを適用
 	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) $(MYSQL_DATABASE) < scripts/seeds/migrate/up.sql
 
-stg-migrate-down: ## stg向け: マイグレーションをロールバック
+stg-migrate-down: ## stg: マイグレーションをロールバック
 	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) $(MYSQL_DATABASE) < scripts/seeds/migrate/down.sql
 
 
@@ -145,6 +137,37 @@ deploy: push
 		--function-name stg-shop-api \
 		--image-uri $(AWS_ACCOUNT_ID).dkr.ecr.ap-northeast-1.amazonaws.com/stg-shop-api:$(VERSION) | jq .
 
+# ssm
+.PHONY: ssm-start-session
+ssm-start-session:
+	aws ssm start-session --profile ${AWS_PROFILE} --region ap-northeast-1 --target $(TARGET_ID)
+
+# secrets manager
+.PHONY: dev-get-secret-list dev-get-secret-value stg-get-secret-value stg-force-delete-secret
+dev-get-secret-list: ## dev: シークレットマネージャーのシークレットを一覧表示
+	docker exec -it core-localstack awslocal secretsmanager list-secrets --region ap-northeast-1
+
+dev-get-secret-value: ## dev: シークレットマネージャーのシークレットを取得
+	docker exec -it core-localstack awslocal secretsmanager get-secret-value --secret-id core/dev/rds-cluster --region ap-northeast-1
+
+stg-get-secret-value: ## stg: シークレットマネージャーのシークレットを取得
+	aws secretsmanager get-secret-value --region ap-northeast-1 --profile ${AWS_PROFILE} --secret-id $(SECRET_ID) | jq .
+
+stg-force-delete-secret: ## stg: シークレットマネージャーのシークレットを強制的に削除
+	aws secretsmanager delete-secret \
+		--profile ${AWS_PROFILE} \
+		--region ap-northeast-1 \
+		--secret-id $(SECRET_ID) \
+		--force-delete-without-recovery | jq .
+
+# rds
+.PHONY: stg-describe-db-instances stg-describe-db-proxy-targets
+stg-describe-db-instances: ## stg: RDSの情報を取得
+	aws rds describe-db-instances --db-instance-identifier stg-data-pipeline-sample-core-db-instance-1 --profile ${AWS_PROFILE} --region ap-northeast-1 | jq .
+
+stg-describe-db-proxy-targets: ## stg: RDS Proxyの情報を取得
+	aws rds describe-db-proxy-targets --profile ${AWS_PROFILE} --region ap-northeast-1 --db-proxy-name stg-data-pipeline-sample-core-db-proxy | jq .
+
 
 # =================================================================
 # API request operations (dev)
@@ -174,88 +197,88 @@ SHOP_API_LOCAL_HOST := localhost
 SHOP_API_LOCAL_PORT := 8080
 
 .PHONY: healthcheck
-healthcheck: ## ローカル向け: healthcheck APIのリクエスト
+healthcheck: ## dev: healthcheck APIのリクエスト
 	curl -i -X 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/healthcheck' \
 		-H 'accept: application/json'
 
 # User API
 .PHONY: create-user get-me create-profile get-profile-me
-create-user: ## ローカル向け: ユーザーの作成
+create-user: ## dev: ユーザーの作成
 	curl -i -X 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/users' \
 		-H 'accept: application/json' \
 		-d ''
 
-get-me: ## ローカル向け: ユーザーの情報を取得
+get-me: ## dev: ユーザーの情報を取得
 	curl -i -X 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/users/me' \
 		-H 'accept: application/json'
 
-create-profile: ## ローカル向け: ユーザーのプロフィールを作成
+create-profile: ## dev: ユーザーのプロフィールを作成
 	curl -sX 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/users/profiles' \
 		-H 'accept: application/json' \
 		-H 'Content-Type: application/json' \
 		-d '{"name": {"first_name": "智","last_name": "真皿","first_name_roman": "Satoshi","last_name_roman": "Masara"}, "address": { "region": "関東", "zip_code": "150-8377", "prefecture": "東京都", "city": "渋谷区", "street": "宇田川町", "other": "15番1号"}, "birthdate": "2000-01-01", "image_url": "https://example"}' | jq .
 
-get-profile-me: ## ローカル向け: ユーザーのプロフィールを取得
+get-profile-me: ## dev: ユーザーのプロフィールを取得
 	curl -sX 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/users/profiles/me' \
 		-H 'accept: application/json' | jq .
 
 # Product API
 .PHONY: get-products get-product-by-id
-get-products: ## ローカル向け: 商品の一覧を取得
+get-products: ## dev: 商品の一覧を取得
 	curl -sX 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/products?cursor=MjAwMDEwMDE%3D&limit=10' \
 		-H 'accept: application/json' | jq .
 
-get-product-by-id: ## ローカル向け: 商品の詳細を取得
+get-product-by-id: ## dev: 商品の詳細を取得
 	curl -sX 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/products/10001002' \
 		-H 'accept: application/json' | jq .
 
 # External payment service customer information API
 .PHONY: get-customer create-customer delete-customer
-get-customer: ## ローカル向け: 顧客の情報を取得
+get-customer: ## dev: 顧客の情報を取得
 	curl -sX 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payment/customers/10001001' \
 		-H 'accept: application/json' | jq .
 
-create-customer: ## ローカル向け: 顧客の情報を作成
+create-customer: ## dev: 顧客の情報を作成
 	curl -i -sX 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payment/customers' \
 		-H 'accept: application/json' \
 		-d ''
 
-delete-customer: ## ローカル向け: 顧客の情報を削除
+delete-customer: ## dev: 顧客の情報を削除
 	curl -i -sX 'DELETE' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payment/customers' \
 		-H 'accept: */*'
 
 # Card API
 .PHONY: get-credit-cards create-credit-card delete-credit-card
-get-credit-cards: ## ローカル向け: クレジットカードの一覧を取得
+get-credit-cards: ## dev: クレジットカードの一覧を取得
 	curl -sX 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/cards' \
 		-H 'accept: application/json' | jq .
 
-create-credit-card: ## ローカル向け: クレジットカードの情報を作成
+create-credit-card: ## dev: クレジットカードの情報を作成
 	curl -i -sX 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/cards' \
 		-H 'accept: */*' \
 		-H 'Content-Type: application/json' \
 		-d '{"token": "9f9213b2-9687-6910-d2ec-3a247582be2d", "is_default": true}'
 
-delete-credit-card: ## ローカル向け: クレジットカードの情報を削除
+delete-credit-card: ## dev: クレジットカードの情報を削除
 	curl -i -sX 'DELETE' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/cards' \
 		-H 'accept: */*'
 
 # Reservation API
 .PHONY: create-reservations
-create-reservations: ## ローカル向け: 予約の情報を作成
+create-reservations: ## dev: 予約の情報を作成
 	curl -i -sX 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/reservations' \
 		-H 'accept: application/json' \
@@ -265,7 +288,7 @@ create-reservations: ## ローカル向け: 予約の情報を作成
 # Charge API
 .PHONY: create-charge get-charge-histories
 # sample: make create-charge RESERVATION_ID=01976fe3-e429-7803-bfdc-fa4216f0c6b0
-create-charge: ## ローカル向け: 決済の情報を作成
+create-charge: ## dev: 決済の情報を作成
 	curl -i -sX 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/charges' \
 		-H 'accept: application/json' \
@@ -289,19 +312,19 @@ stg-api-all-request: stg-healthcheck sleep \
 
 .PHONY: stg-healthcheck
 # sample: make stg-healthcheck API_DOMAIN=api.domain_name.com
-stg-healthcheck: ## stg向け: healthcheck APIのリクエスト
+stg-healthcheck: ## stg: healthcheck APIのリクエスト
 	curl -i -X 'GET' \
 		'https://$(API_DOMAIN)/shop/v1/healthcheck' \
 		-H 'accept: application/json'
 
 .PHONY: stg-create-user stg-get-me stg-create-product-comment
-stg-create-user: ## stg向け: ユーザーの作成
+stg-create-user: ## stg: ユーザーの作成
 	curl -i -X 'POST' \
 		'https://$(API_DOMAIN)/shop/v1/users' \
 		-H 'accept: application/json' \
 		-d ''
 
-stg-get-me: ## stg向け: ユーザーの情報を取得
+stg-get-me: ## stg: ユーザーの情報を取得
 	curl -i -X 'GET' \
 		'https://$(API_DOMAIN)/shop/v1/users/me' \
 		-H 'accept: application/json'
@@ -314,7 +337,7 @@ stg-create-reservations:
 		-H 'Content-Type: application/json' \
 		-d '[{"product_id": 10001001, "quantity": 2}, {"product_id": 10001002, "quantity": 3}]'
 
-stg-create-charge: ## stg向け: 決済の情報を作成
+stg-create-charge: ## stg: 決済の情報を作成
 	curl -i -sX 'POST' \
 		'https://$(API_DOMAIN)/shop/v1/payments/charges' \
 		-H 'accept: application/json' \
