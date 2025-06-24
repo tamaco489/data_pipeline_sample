@@ -24,8 +24,8 @@ resource "aws_rds_cluster" "core_db" {
   }
 
   storage_encrypted               = true
-  backup_retention_period         = 7
-  preferred_backup_window         = "03:00-04:00"
+  backup_retention_period         = 0
+  preferred_backup_window         = "00:00-01:00"
   preferred_maintenance_window    = "sun:05:00-sun:06:00"
   db_subnet_group_name            = aws_db_subnet_group.core_db.name
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.core_db.name

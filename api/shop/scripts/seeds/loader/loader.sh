@@ -3,13 +3,24 @@
 
 set -e
 
+# === Default Values ===
 CONTAINER_NAME="mysql"
-MYSQL_USER="root"
-MYSQL_PASSWORD="password#0"
-MYSQL_DATABASE="dev_core"
-MYSQL_HOST="localhost"
-MYSQL_PORT=33306
+MYSQL_USER="${MYSQL_USER:-root}"
+MYSQL_PASSWORD="${MYSQL_PASSWORD:-password#0}"
+MYSQL_DATABASE="${MYSQL_DATABASE:-dev_core}"
+MYSQL_HOST="${MYSQL_HOST:-localhost}"
+MYSQL_PORT="${MYSQL_PORT:-33306}"
 
+# === Log ===
+echo "========================= [ Start loading data ] ========================="
+echo "CONTAINER_NAME=${CONTAINER_NAME}"
+echo "MYSQL_USER=${MYSQL_USER}"
+echo "MYSQL_PASSWORD=${MYSQL_PASSWORD}"
+echo "MYSQL_DATABASE=${MYSQL_DATABASE}"
+echo "MYSQL_HOST=${MYSQL_HOST}"
+echo "MYSQL_PORT=${MYSQL_PORT}"
+
+# === Target SQL ===
 SQL_FILES=(
   # users
   "./scripts/seeds/loader/users/01_users.sql"
@@ -29,10 +40,14 @@ SQL_FILES=(
   "./scripts/seeds/loader/payments/04_reservation_products.sql"
 )
 
+# === Execute ===
 for sql_file in "${SQL_FILES[@]}"
 do
   echo "Executing ${sql_file} ..."
-  docker compose exec -T $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" < "$sql_file"
+  docker compose exec -T $CONTAINER_NAME \
+    mysql -h"$MYSQL_HOST" -P"$MYSQL_PORT" \
+    -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" \
+    "$MYSQL_DATABASE" < "$sql_file"
 done
 
 echo "All seed data inserted successfully."

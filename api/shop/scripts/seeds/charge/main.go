@@ -27,8 +27,8 @@ func NewDBConfig() *DBConfig {
 		Database: getEnvOrDefault("MYSQL_DATABASE", "dev_core"),
 		Host:     getEnvOrDefault("MYSQL_HOST", "localhost"),
 		Port:     getEnvOrDefault("MYSQL_PORT", "33306"),
-		Username: getEnvOrDefault("MYSQL_USERNAME", "core"),
-		Password: getEnvOrDefault("MYSQL_PASSWORD", "password"),
+		Username: getEnvOrDefault("MYSQL_USER", "root"),
+		Password: getEnvOrDefault("MYSQL_PASSWORD", "password#0"),
 	}
 }
 
@@ -230,7 +230,7 @@ func (cp *ChargeProcessor) insertChargeProduct(ctx context.Context, chargeID str
 
 // Process: Process charge data
 func (cp *ChargeProcessor) Process(ctx context.Context) error {
-	slog.InfoContext(ctx, "start charges script")
+	slog.InfoContext(ctx, "========================= [ Start charges script ] =========================")
 
 	// Get confirmed reservations
 	rows, err := cp.getConfirmedReservations(ctx)
