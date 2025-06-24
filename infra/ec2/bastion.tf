@@ -17,8 +17,8 @@ resource "aws_instance" "bastion" {
       - sudo dnf -y install https://dev.mysql.com/get/mysql84-community-release-el9-1.noarch.rpm
       - sudo dnf -y install mysql mysql-community-client mysql-community-server
 
-      # Git install
-      - sudo dnf install -y git
+      # Git & Make install
+      - sudo dnf install -y git make
 
       # Go 1.24.2 install
       - curl -LO https://go.dev/dl/go1.24.2.linux-amd64.tar.gz
