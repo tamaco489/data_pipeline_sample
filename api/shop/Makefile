@@ -111,7 +111,7 @@ charge: load ## 決済処理データの初期化
 stg-migrate-up: ## stg向け: マイグレーションを適用
 	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) $(MYSQL_DATABASE) < scripts/seeds/migrate/up.sql
 
-stg-migrate-down:
+stg-migrate-down: ## stg向け: マイグレーションをロールバック
 	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) $(MYSQL_DATABASE) < scripts/seeds/migrate/down.sql
 
 
