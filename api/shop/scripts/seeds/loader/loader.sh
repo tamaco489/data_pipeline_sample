@@ -12,6 +12,7 @@ MYSQL_HOST="${MYSQL_HOST:-localhost}"
 MYSQL_PORT="${MYSQL_PORT:-33306}"
 
 # === Log ===
+echo "========================= [ Start loading data ] ========================="
 echo "CONTAINER_NAME=${CONTAINER_NAME}"
 echo "MYSQL_USER=${MYSQL_USER}"
 echo "MYSQL_PASSWORD=${MYSQL_PASSWORD}"

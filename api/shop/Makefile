@@ -98,30 +98,21 @@ migrate-status: ## マイグレーションの状態を表示
 # =================================================================
 .PHONY: reset load
 reset: ## DBデータのリセット
-	@echo "Start resetting data..."
 	MYSQL_HOST=$(MYSQL_HOST) MYSQL_PORT=$(MYSQL_PORT) MYSQL_USER=$(MYSQL_USER) MYSQL_PASSWORD=$(MYSQL_PASSWORD) MYSQL_DATABASE=$(MYSQL_DATABASE) bash ./scripts/seeds/reset/reset.sh
-	@echo "Reset completed."
 
 load: reset ## DBデータの初期化
-	@echo "Start loading data..."
 	MYSQL_HOST=$(MYSQL_HOST) MYSQL_PORT=$(MYSQL_PORT) MYSQL_USER=$(MYSQL_USER) MYSQL_PASSWORD=$(MYSQL_PASSWORD) MYSQL_DATABASE=$(MYSQL_DATABASE) bash ./scripts/seeds/loader/loader.sh
-	@echo "Seeding completed."
 
 charge: load ## 決済処理データの初期化
 	go run ./scripts/seeds/charge/main.go
 
-
 # stg向け
 .PHONY: stg-migrate-up stg-migrate-down
 stg-migrate-up: ## stg向け: マイグレーションを適用
-	@echo "Start migrating stg..."
 	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) $(MYSQL_DATABASE) < scripts/seeds/migrate/up.sql
-	@echo "Migrating stg completed."
 
 stg-migrate-down:
-	@echo "Start rolling back stg..."
 	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) $(MYSQL_DATABASE) < scripts/seeds/migrate/down.sql
-	@echo "Rolling back stg completed."
 
 
 # =================================================================

@@ -12,6 +12,7 @@ MYSQL_DATABASE="${MYSQL_DATABASE}"
 
 SQL_FILE="./scripts/seeds/reset/trancate.sql"
 
+echo "========================= [ Start truncating data ] ========================="
 echo "Executing TRUNCATE script: ${SQL_FILE} ..."
 docker compose exec -T $CONTAINER_NAME \
   mysql -h"$MYSQL_HOST" -P"$MYSQL_PORT" \
