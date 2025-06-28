@@ -72,20 +72,18 @@ decrypt-secret:
 
 
 # =====================================================================================
-# aws
-# =====================================================================================
-# ssm
-.PHONY: ssm-start-session get-secret-value describe-db-proxy-targets
-ssm-start-session:
-	@AWS_PROFILE=$(AWS_PROFILE) AWS_DEFAULT_REGION=$(AWS_REGION) \
-		aws ssm start-session --target $(TARGET_ID)
-
 # secrets manager
-get-secret-value:
-	@AWS_PROFILE=$(AWS_PROFILE) AWS_DEFAULT_REGION=$(AWS_REGION) \
-		aws secretsmanager get-secret-value --secret-id $(SECRET_ID) | jq .
+# =====================================================================================
+.PHONY: stg-get-secret-value stg-force-delete-secret
+stg-get-secret-value:
+	aws secretsmanager get-secret-value \
+		--region $(AWS_REGION) \
+		--profile ${AWS_PROFILE} \
+		--secret-id $(SECRET_ID) | jq .
 
-# rds proxy
-describe-db-proxy-targets:
-	@AWS_PROFILE=$(AWS_PROFILE) AWS_DEFAULT_REGION=$(AWS_REGION) \
-		aws rds describe-db-proxy-targets --db-proxy-name $(DB_PROXY_NAME) | jq .
+stg-force-delete-secret:
+	aws secretsmanager delete-secret \
+		--region $(AWS_REGION) \
+		--profile ${AWS_PROFILE} \
+		--secret-id $(SECRET_ID) \
+		--force-delete-without-recovery | jq .

@@ -143,23 +143,12 @@ ssm-start-session:
 	aws ssm start-session --profile ${AWS_PROFILE} --region ap-northeast-1 --target $(TARGET_ID)
 
 # secrets manager
-.PHONY: dev-get-secret-list dev-get-secret-value stg-get-secret-value stg-force-delete-secret
+.PHONY: dev-get-secret-list dev-get-secret-value
 dev-get-secret-list: ## dev: シークレットマネージャーのシークレットを一覧表示
 	docker exec -it core-localstack awslocal secretsmanager list-secrets --region ap-northeast-1
 
 dev-get-secret-value: ## dev: シークレットマネージャーのシークレットを取得
 	docker exec -it core-localstack awslocal secretsmanager get-secret-value --secret-id core/dev/rds-cluster --region ap-northeast-1
-
-stg-get-secret-value: ## stg: シークレットマネージャーのシークレットを取得
-	aws secretsmanager get-secret-value --region ap-northeast-1 --profile ${AWS_PROFILE} --secret-id $(SECRET_ID) | jq .
-
-stg-force-delete-secret: ## stg: シークレットマネージャーのシークレットを強制的に削除
-	aws secretsmanager delete-secret \
-		--profile ${AWS_PROFILE} \
-		--region ap-northeast-1 \
-		--secret-id $(SECRET_ID) \
-		--force-delete-without-recovery | jq .
-
 # rds
 .PHONY: stg-describe-db-instances stg-describe-db-proxy-targets
 stg-describe-db-instances: ## stg: RDSの情報を取得
