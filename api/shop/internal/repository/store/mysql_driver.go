@@ -65,7 +65,7 @@ func connect() (*sql.DB, error) {
 	db.SetMaxIdleConns(0)
 	db.SetConnMaxLifetime(lifetime)
 
-	slog.Info("mysql connected", "host", configuration.Get().CoreDB.Host, "port", configuration.Get().CoreDB.Port, "dbname", configuration.Get().CoreDB.Name)
+	slog.Info("[debug: mysql connected]", "host", configuration.Get().CoreDB.Host, "port", configuration.Get().CoreDB.Port, "dbname", configuration.Get().CoreDB.Name)
 
 	return db, err
 }
