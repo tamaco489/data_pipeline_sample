@@ -338,3 +338,12 @@ go: downloading filippo.io/edwards25519 v1.1.0
 2025/06/24 13:28:02 INFO inserted charge_product charge_id=0197a21f-cda9-76d7-98ca-a011bd080a43 product_id=10001007
 2025/06/24 13:28:02 INFO charge script completed
 ```
+
+4. Secrets Manager の `host` を更新
+```bash
+# 更新
+$ make stg-put-secret-value AWS_PROFILE=xxxxxxxxxxxx SECRET_ID=core/stg/rds-cluster MYSQL_DATABASE=stg_core MYSQL_HOST=xxxxxxxxxxxx MYSQL_PORT=3306 MYSQL_USER=core MYSQL_PASSWORD=password
+
+# 確認
+$ make stg-get-secret-value AWS_PROFILE=xxxxxxxxxxxx SECRET_ID=core/stg/rds-cluster
+```
