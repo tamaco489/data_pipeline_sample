@@ -35,6 +35,17 @@ resource "aws_vpc_security_group_ingress_rule" "secrets_manager_endpoint_from_sh
   referenced_security_group_id = aws_security_group.shop_api.id
 }
 
+# Lambda Shop API -> RDS Proxy (egress)
+resource "aws_vpc_security_group_egress_rule" "shop_api_to_rds_proxy" {
+  security_group_id            = aws_security_group.shop_api.id
+  description                  = "Allow MySQL access to RDS Proxy SG"
+  from_port                    = 3306
+  to_port                      = 3306
+  ip_protocol                  = "tcp"
+  referenced_security_group_id = data.terraform_remote_state.rds_core.outputs.rds_proxy_security_group.id
+  tags                         = { Name = "${local.fqn}-shop-api-to-rds-proxy-egress" }
+}
+
 # RDS Proxy <- Lambda Shop API
 resource "aws_vpc_security_group_ingress_rule" "from_shop_api_to_rds_proxy" {
   security_group_id            = data.terraform_remote_state.rds_core.outputs.rds_proxy_security_group.id
