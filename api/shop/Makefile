@@ -347,14 +347,14 @@ stg-create-reservations:
 		'https://$(API_DOMAIN)/shop/v1/payments/reservations' \
 		-H 'accept: application/json' \
 		-H 'Content-Type: application/json' \
-		-d '[{"product_id": 10001001, "quantity": 2}, {"product_id": 10001002, "quantity": 3}]'
+		-d '[{"product_id": 10001001, "quantity": 1}, {"product_id": 10001003, "quantity": 1}, {"product_id": 10001009, "quantity": 3}, {"product_id": 10001014, "quantity": 2}]'
 
 stg-create-charge: ## stg: Create charge
 	curl -i -sX 'POST' \
 		'https://$(API_DOMAIN)/shop/v1/payments/charges' \
 		-H 'accept: application/json' \
 		-H 'Content-Type: application/json' \
-		-d '{"reservation_id": "9f9213b2-9687-6910-d2ec-3a247582be2d"}'
+		-d '{"reservation_id": "$(RESERVATION_ID)"}'
 
 
 # =================================================================
