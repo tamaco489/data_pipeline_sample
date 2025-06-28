@@ -194,9 +194,18 @@ $ make stg-describe-db-proxy-targets AWS_PROFILE=$(AWS_PROFILE)
 # ssm で踏み台へアクセス
 $ make ssm-start-session AWS_PROFILE=$(AWS_PROFILE) TARGET_ID=$(TARGET_ID)
 
+# Goのパス設定
+$ export PATH=$PATH:/usr/local/go/bin
+
+# Goスクリプト実行に必要なディレクトリ群を作成し、権限の割り当て
+$ sudo mkdir -p /home/ssm-user/go /home/ssm-user/.cache
+$ sudo chown -R ssm-user:ssm-user /home/ssm-user/go
+$ sudo chown -R ssm-user:ssm-user /home/ssm-user/.cache
+
 # プロジェクトのルートディレクトリへ移動
 $ cd /home/ssm-user/workspace/data_pipeline_sample/api/shop/
 ```
+
 ```bash
 # RDS Proxy を経由して DB へアクセス
 $ mysql -h $(RDS_PROXY_HOST_NAME) -P 3306 -u core -ppassword -D stg_core
@@ -250,17 +259,6 @@ mysql> show tables;
 ```
 
 #### 3. 初期データを投入
-
-スクリプト実行環境設定
-```bash
-# Goのパス設定
-$ export PATH=$PATH:/usr/local/go/bin
-
-# Goスクリプト実行に必要なディレクトリ群を作成し、権限の割り当て
-$ sudo mkdir -p /home/ssm-user/go /home/ssm-user/.cache
-$ sudo chown -R ssm-user:ssm-user /home/ssm-user/go
-$ sudo chown -R ssm-user:ssm-user /home/ssm-user/.cache
-```
 
 workディレクトリに移動
 ```bash
