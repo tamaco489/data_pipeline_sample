@@ -180,6 +180,29 @@ stg-describe-db-instances: ## stg: Get RDS information
 stg-describe-db-proxy-targets: ## stg: Get RDS Proxy information
 	aws rds describe-db-proxy-targets --profile ${AWS_PROFILE} --region ap-northeast-1 --db-proxy-name stg-data-pipeline-sample-core-db-proxy | jq .
 
+# =================================================================
+# MySQL operations (port-forward, ping, cmd, dump, dump-import)
+# =================================================================
+# port forward
+.PHONY: stg-core-port-forward stg-core-ping stg-core-cmd stg-core-dump stg-core-dump-import
+stg-core-port-forward: ## stg: Port forward
+	aws ssm start-session --profile ${AWS_PROFILE} --region ap-northeast-1 --target $(TARGET_ID) --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters host=$(DB_PROXY_HOST),portNumber="3306",localPortNumber="13306"
+
+stg-core-ping: ## stg: Ping
+	mysqladmin -h 127.0.0.1 -P 13306 -u core -ppassword ping
+
+# cmd
+stg-core-cmd: ## stg: Command
+	mysql -h 127.0.0.1 -P 13306 -u core -ppassword stg_core -e "SELECT * FROM users WHERE id = '01975ff1-5ba9-73ca-be9a-75aa6bb00aaf';\G"
+
+# dump
+stg-core-dump: ## stg: Dump
+	mysqldump -h 127.0.0.1 -P 13306 -u core -ppassword --quick --skip-lock-tables --no-autocommit --set-gtid-purged=OFF stg_core > $(DUMP_DIR)/stg_$(date +"%Y%m%d_%H%M%S").sql
+
+# dump_import
+stg-core-dump-import: ## stg: Dump import
+	mysql -h 127.0.0.1 -P 33306 --local_infile=1 -u core -ppassword dev_core --init-command="SET autocommit=0;SET unique_checks=0;SET foreign_key_checks=0;" < $(DUMP_DIR)/stg_$(date +"%Y%m%d_%H%M%S").sql
+
 
 # =================================================================
 # API request operations (dev)
