@@ -262,6 +262,11 @@ $ sudo chown -R ssm-user:ssm-user /home/ssm-user/go
 $ sudo chown -R ssm-user:ssm-user /home/ssm-user/.cache
 ```
 
+workディレクトリに移動
+```bash
+cd /home/ssm-user/workspace/data_pipeline_sample/
+```
+
 データ投入スクリプトを実行
 ```bash
 $ make charge MYSQL_HOST=$(RDS_PROXY_HOST_NAME) MYSQL_PORT=3306 MYSQL_USER=core MYSQL_PASSWORD='password' MYSQL_DATABASE=stg_core
