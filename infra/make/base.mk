@@ -69,21 +69,3 @@ encrypt-secret:
 decrypt-secret:
 	@AWS_PROFILE=$(AWS_PROFILE) AWS_DEFAULT_REGION=$(AWS_REGION) \
 		sops --kms $(SOPS_KMS_ARN) -d tfvars/$(ENV)_$(CREDENTIAL_FILE_NAME).yaml
-
-
-# =====================================================================================
-# secrets manager
-# =====================================================================================
-.PHONY: stg-get-secret-value stg-force-delete-secret
-stg-get-secret-value:
-	aws secretsmanager get-secret-value \
-		--region $(AWS_REGION) \
-		--profile ${AWS_PROFILE} \
-		--secret-id $(SECRET_ID) | jq .
-
-stg-force-delete-secret:
-	aws secretsmanager delete-secret \
-		--region $(AWS_REGION) \
-		--profile ${AWS_PROFILE} \
-		--secret-id $(SECRET_ID) \
-		--force-delete-without-recovery | jq .
