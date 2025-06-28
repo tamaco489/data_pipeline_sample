@@ -2,11 +2,11 @@
 # Tools for setting up the execution environment
 # =================================================================
 .PHONY: setup-env install-tools
-setup-env: ## 環境変数の設定
+setup-env: ## dev: Set environment variables
 	@cp -p .env_sample .env
 	@cp .env_localstack_sample .env_localstack
 
-install-tools: setup-env ## プロジェクトで使用するツールのインストール
+install-tools: setup-env ## dev: Install tools used in the project
 	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
 	go install golang.org/x/tools/cmd/godoc@latest
 	go install github.com/rubenv/sql-migrate/...@latest
@@ -19,14 +19,14 @@ install-tools: setup-env ## プロジェクトで使用するツールのイン�
 # Generate Open API files and SQLC files
 # =================================================================
 .PHONY: gen-api bundle-openapi
-gen-api: bundle-openapi ## Open APIのschemaをもとに、APIサーバインターフェース、及び型定義を生成
+gen-api: bundle-openapi ## dev: Generate API server interface and type definitions based on the Open API schema
 	oapi-codegen -package gen -generate types -o internal/gen/types.gen.go ./spec/openapi.yaml
 	oapi-codegen -package gen -generate strict-server,gin -templates ./spec/templates -o internal/gen/server.gen.go ./spec/openapi.yaml
 
-bundle-openapi: ## Open APIのファイルを統合
+bundle-openapi: ## dev: Bundle Open API files
 	redocly bundle ./spec/openapi_base.yaml --output ./spec/openapi.yaml
 
-gen-sqlc: ## SQLCのファイルを生成
+gen-sqlc: ## dev: Generate SQLC files
 	sqlc generate -f internal/repository/sqlc.yaml
 	mockgen -source=./internal/repository/gen_sqlc/querier.go -package mock -destination=./internal/repository/gen_mock/mock_querier.go
 	mockgen -source=./internal/repository/gen_sqlc/db.go -package mock -destination=./internal/repository/gen_mock/mock_db.go
@@ -36,16 +36,16 @@ gen-sqlc: ## SQLCのファイルを生成
 # Local execution environment setup
 # =================================================================
 .PHONY: lint deps build run
-lint: ## コードの静的解析
+lint: ## dev: Static code analysis
 	golangci-lint run --timeout 3m
 
-deps: ## 依存パッケージのダウンロード
+deps: ## dev: Download dependencies
 	go mod download && go mod tidy
 
-build: deps
+build: deps ## dev: Build the project
 	go build -o build/shop_api cmd/main.go
 
-run: build
+run: build ## dev: Run the project
 	./build/shop_api
 
 
@@ -53,13 +53,13 @@ run: build
 # Container execution environment setup
 # =================================================================
 .PHONY: up down logs
-up: ## コンテナの起動
+up: ## dev: Start containers
 	docker compose up -d shop-api mysql localstack
 
-down: ## コンテナの停止
+down: ## dev: Stop containers
 	docker compose down shop-api mysql localstack
 
-logs: ## コンテナのログを表示
+logs: ## dev: Show container logs
 	docker compose logs -f shop-api
 
 
@@ -67,21 +67,21 @@ logs: ## コンテナのログを表示
 # MySQL operations
 # =================================================================
 .PHONY: mysql
-mysql: ## MySQLのコンテナを起動
+mysql: ## dev: Start MySQL container
 	MYSQL_ROOT_PASSWORD=password#0 docker compose exec mysql mysql -u root -ppassword#0 -h localhost -P 33306 dev_core
 
 # MySQL table migration
 .PHONY: migrate-new migrate-up migrate-down migrate-status
-migrate-new: ## 新しいマイグレーションファイルを作成
+migrate-new: ## dev: Create a new migration file
 	sql-migrate new -env='dev' -config=./_tools/sql-migrate/config.yaml $(NAME)
 
-migrate-up: ## マイグレーションを適用
+migrate-up: ## dev: Apply migrations
 	sql-migrate up -env='dev' -config=./_tools/sql-migrate/config.yaml
 
-migrate-down: ## マイグレーションをロールバック
+migrate-down: ## dev: Rollback migrations
 	sql-migrate down -limit=1 -env='dev' -config=./_tools/sql-migrate/config.yaml
 
-migrate-status: ## マイグレーションの状態を表示
+migrate-status: ## dev: Show migration status
 	sql-migrate status -env='dev' -config=./_tools/sql-migrate/config.yaml
 
 
@@ -89,21 +89,21 @@ migrate-status: ## マイグレーションの状態を表示
 # Scripts
 # =================================================================
 .PHONY: reset load
-reset: ## DBデータのリセット
+reset: ## dev/stg: Reset database data
 	MYSQL_HOST=$(MYSQL_HOST) MYSQL_PORT=$(MYSQL_PORT) MYSQL_USER=$(MYSQL_USER) MYSQL_PASSWORD=$(MYSQL_PASSWORD) MYSQL_DATABASE=$(MYSQL_DATABASE) bash ./scripts/seeds/reset/reset.sh
 
-load: reset ## DBデータの初期化
+load: reset ## dev/stg: Initialize database data
 	MYSQL_HOST=$(MYSQL_HOST) MYSQL_PORT=$(MYSQL_PORT) MYSQL_USER=$(MYSQL_USER) MYSQL_PASSWORD=$(MYSQL_PASSWORD) MYSQL_DATABASE=$(MYSQL_DATABASE) bash ./scripts/seeds/loader/loader.sh
 
-charge: load ## 決済処理データの初期化
+charge: load ## dev/stg: Initialize payment processing data
 	MYSQL_HOST=$(MYSQL_HOST) MYSQL_PORT=$(MYSQL_PORT) MYSQL_USER=$(MYSQL_USER) MYSQL_PASSWORD=$(MYSQL_PASSWORD) MYSQL_DATABASE=$(MYSQL_DATABASE) go run ./scripts/seeds/charge/main.go
 
 # stg向け
 .PHONY: stg-migrate-up stg-migrate-down
-stg-migrate-up: ## stg: マイグレーションを適用
+stg-migrate-up: ## stg: Apply migrations
 	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) $(MYSQL_DATABASE) < scripts/seeds/migrate/up.sql
 
-stg-migrate-down: ## stg: マイグレーションをロールバック
+stg-migrate-down: ## stg: Rollback migrations
 	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) $(MYSQL_DATABASE) < scripts/seeds/migrate/down.sql
 
 
@@ -114,17 +114,17 @@ VERSION := shop_api_v0.0.0
 
 # ecr
 .PHONY: auth push get-images delete-images
-auth: ## ECRの認証
+auth: ## stg: Authenticate ECR
 	aws ecr get-login-password --region ap-northeast-1 --profile ${AWS_PROFILE} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com
 
-push: auth ## ECRにイメージをpush
+push: auth ## stg: Push image to ECR
 	docker build --platform linux/amd64 --no-cache -t $(AWS_ACCOUNT_ID).dkr.ecr.ap-northeast-1.amazonaws.com/stg-shop-api:$(VERSION) -f ./build/Dockerfile.shop .
 	docker push ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/stg-shop-api:$(VERSION)
 
-get-images: ## ECRのイメージを一覧表示
+get-images: ## stg: List images in ECR
 	aws ecr list-images --repository-name stg-shop-api --region ap-northeast-1 --profile ${AWS_PROFILE} --query 'imageIds[*]' | jq .
 
-delete-images: ## ECRのイメージを削除
+delete-images: ## stg: Delete images in ECR
 	@aws ecr list-images --repository-name stg-shop-api --region ap-northeast-1 --profile ${AWS_PROFILE} --query 'imageIds[*]' --output json > /tmp/images.json
 	@cat /tmp/images.json | jq -c '.[]' | while read -r image_id; do \
 		aws ecr batch-delete-image --repository-name stg-shop-api --region ap-northeast-1 --profile ${AWS_PROFILE} --image-ids $${image_id}; \
@@ -132,40 +132,40 @@ delete-images: ## ECRのイメージを削除
 
 # lambda
 .PHONY: deploy
-deploy: push
+deploy: push ## stg: Deploy lambda function
 	aws lambda update-function-code  --profile ${AWS_PROFILE} \
 		--function-name stg-shop-api \
 		--image-uri $(AWS_ACCOUNT_ID).dkr.ecr.ap-northeast-1.amazonaws.com/stg-shop-api:$(VERSION) | jq .
 
 # ssm
 .PHONY: ssm-start-session
-ssm-start-session:
+ssm-start-session: ## stg: Start session
 	aws ssm start-session --profile ${AWS_PROFILE} --region ap-northeast-1 --target $(TARGET_ID)
 
 # secrets manager
 .PHONY: dev-get-secret-list dev-get-secret-value stg-get-secret-value stg-force-delete-secret
-dev-get-secret-list: ## dev: シークレットマネージャーのシークレットを一覧表示
+dev-get-secret-list: ## dev: List secrets in Secrets Manager
 	docker exec -it core-localstack awslocal secretsmanager list-secrets --region ap-northeast-1
 
-dev-get-secret-value: ## dev: シークレットマネージャーのシークレットを取得
+dev-get-secret-value: ## dev: Get secrets from Secrets Manager
 	docker exec -it core-localstack awslocal secretsmanager get-secret-value \
 		--secret-id core/dev/rds-cluster \
 		--region ap-northeast-1 | jq .
 
-stg-get-secret-value: ## stg: シークレットマネージャーのシークレットを取得
+stg-get-secret-value: ## stg: Get secrets from Secrets Manager
 	aws secretsmanager get-secret-value \
 		--region ap-northeast-1 \
 		--profile ${AWS_PROFILE} \
 		--secret-id $(SECRET_ID) | jq .
 
-stg-put-secret-value: ## stg: シークレットマネージャーのシークレットを更新
+stg-put-secret-value: ## stg: Update secrets in Secrets Manager
 	aws secretsmanager put-secret-value \
 		--profile ${AWS_PROFILE} \
 		--secret-id $(SECRET_ID) \
 		--secret-string "{\"dbname\":\"$(MYSQL_DATABASE)\",\"host\":\"$(MYSQL_HOST)\",\"port\":\"$(MYSQL_PORT)\",\"username\":\"$(MYSQL_USER)\",\"password\":\"$(MYSQL_PASSWORD)\"}" \
 	| jq .
 
-stg-force-delete-secret: ## stg: シークレットマネージャーのシークレットを強制削除
+stg-force-delete-secret: ## stg: Force delete secrets in Secrets Manager
 	aws secretsmanager delete-secret \
 		--region ap-northeast-1 \
 		--profile ${AWS_PROFILE} \
@@ -174,10 +174,10 @@ stg-force-delete-secret: ## stg: シークレットマネージャーのシー�
 
 # rds
 .PHONY: stg-describe-db-instances stg-describe-db-proxy-targets
-stg-describe-db-instances: ## stg: RDSの情報を取得
+stg-describe-db-instances: ## stg: Get RDS information
 	aws rds describe-db-instances --db-instance-identifier stg-data-pipeline-sample-core-db-instance-1 --profile ${AWS_PROFILE} --region ap-northeast-1 | jq .
 
-stg-describe-db-proxy-targets: ## stg: RDS Proxyの情報を取得
+stg-describe-db-proxy-targets: ## stg: Get RDS Proxy information
 	aws rds describe-db-proxy-targets --profile ${AWS_PROFILE} --region ap-northeast-1 --db-proxy-name stg-data-pipeline-sample-core-db-proxy | jq .
 
 
@@ -185,7 +185,7 @@ stg-describe-db-proxy-targets: ## stg: RDS Proxyの情報を取得
 # API request operations (dev)
 # =================================================================
 .PHONY: api-all-request
-sleep:
+sleep: ## dev: Sleep for 0.1 seconds
 	@sleep 0.1
 
 api-all-request: healthcheck sleep \
@@ -209,88 +209,88 @@ SHOP_API_LOCAL_HOST := localhost
 SHOP_API_LOCAL_PORT := 8080
 
 .PHONY: healthcheck
-healthcheck: ## dev: healthcheck APIのリクエスト
+healthcheck: ## dev: healthcheck API request
 	curl -i -X 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/healthcheck' \
 		-H 'accept: application/json'
 
 # User API
 .PHONY: create-user get-me create-profile get-profile-me
-create-user: ## dev: ユーザーの作成
+create-user: ## dev: Create user
 	curl -i -X 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/users' \
 		-H 'accept: application/json' \
 		-d ''
 
-get-me: ## dev: ユーザーの情報を取得
+get-me: ## dev: Get user information
 	curl -i -X 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/users/me' \
 		-H 'accept: application/json'
 
-create-profile: ## dev: ユーザーのプロフィールを作成
+create-profile: ## dev: Create user profile
 	curl -sX 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/users/profiles' \
 		-H 'accept: application/json' \
 		-H 'Content-Type: application/json' \
 		-d '{"name": {"first_name": "智","last_name": "真皿","first_name_roman": "Satoshi","last_name_roman": "Masara"}, "address": { "region": "関東", "zip_code": "150-8377", "prefecture": "東京都", "city": "渋谷区", "street": "宇田川町", "other": "15番1号"}, "birthdate": "2000-01-01", "image_url": "https://example"}' | jq .
 
-get-profile-me: ## dev: ユーザーのプロフィールを取得
+get-profile-me: ## dev: Get user profile
 	curl -sX 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/users/profiles/me' \
 		-H 'accept: application/json' | jq .
 
 # Product API
 .PHONY: get-products get-product-by-id
-get-products: ## dev: 商品の一覧を取得
+get-products: ## dev: Get product list
 	curl -sX 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/products?cursor=MjAwMDEwMDE%3D&limit=10' \
 		-H 'accept: application/json' | jq .
 
-get-product-by-id: ## dev: 商品の詳細を取得
+get-product-by-id: ## dev: Get product details
 	curl -sX 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/products/10001002' \
 		-H 'accept: application/json' | jq .
 
 # External payment service customer information API
 .PHONY: get-customer create-customer delete-customer
-get-customer: ## dev: 顧客の情報を取得
+get-customer: ## dev: Get customer information
 	curl -sX 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payment/customers/10001001' \
 		-H 'accept: application/json' | jq .
 
-create-customer: ## dev: 顧客の情報を作成
+create-customer: ## dev: Create customer
 	curl -i -sX 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payment/customers' \
 		-H 'accept: application/json' \
 		-d ''
 
-delete-customer: ## dev: 顧客の情報を削除
+delete-customer: ## dev: Delete customer
 	curl -i -sX 'DELETE' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payment/customers' \
 		-H 'accept: */*'
 
 # Card API
 .PHONY: get-credit-cards create-credit-card delete-credit-card
-get-credit-cards: ## dev: クレジットカードの一覧を取得
+get-credit-cards: ## dev: Get credit card list
 	curl -sX 'GET' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/cards' \
 		-H 'accept: application/json' | jq .
 
-create-credit-card: ## dev: クレジットカードの情報を作成
+create-credit-card: ## dev: Create credit card
 	curl -i -sX 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/cards' \
 		-H 'accept: */*' \
 		-H 'Content-Type: application/json' \
 		-d '{"token": "9f9213b2-9687-6910-d2ec-3a247582be2d", "is_default": true}'
 
-delete-credit-card: ## dev: クレジットカードの情報を削除
+delete-credit-card: ## dev: Delete credit card
 	curl -i -sX 'DELETE' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/cards' \
 		-H 'accept: */*'
 
 # Reservation API
 .PHONY: create-reservations
-create-reservations: ## dev: 予約の情報を作成
+create-reservations: ## dev: Create reservation
 	curl -i -sX 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/reservations' \
 		-H 'accept: application/json' \
@@ -300,7 +300,7 @@ create-reservations: ## dev: 予約の情報を作成
 # Charge API
 .PHONY: create-charge get-charge-histories
 # sample: make create-charge RESERVATION_ID=01976fe3-e429-7803-bfdc-fa4216f0c6b0
-create-charge: ## dev: 決済の情報を作成
+create-charge: ## dev: Create charge
 	curl -i -sX 'POST' \
 		'http://${SHOP_API_LOCAL_HOST}:${SHOP_API_LOCAL_PORT}/shop/v1/payments/charges' \
 		-H 'accept: application/json' \
@@ -324,19 +324,19 @@ stg-api-all-request: stg-healthcheck sleep \
 
 .PHONY: stg-healthcheck
 # sample: make stg-healthcheck API_DOMAIN=api.domain_name.com
-stg-healthcheck: ## stg: healthcheck APIのリクエスト
+stg-healthcheck: ## stg: healthcheck API request
 	curl -i -X 'GET' \
 		'https://$(API_DOMAIN)/shop/v1/healthcheck' \
 		-H 'accept: application/json'
 
 .PHONY: stg-create-user stg-get-me stg-create-product-comment
-stg-create-user: ## stg: ユーザーの作成
+stg-create-user: ## stg: Create user
 	curl -i -X 'POST' \
 		'https://$(API_DOMAIN)/shop/v1/users' \
 		-H 'accept: application/json' \
 		-d ''
 
-stg-get-me: ## stg: ユーザーの情報を取得
+stg-get-me: ## stg: Get user information
 	curl -i -X 'GET' \
 		'https://$(API_DOMAIN)/shop/v1/users/me' \
 		-H 'accept: application/json'
@@ -349,7 +349,7 @@ stg-create-reservations:
 		-H 'Content-Type: application/json' \
 		-d '[{"product_id": 10001001, "quantity": 2}, {"product_id": 10001002, "quantity": 3}]'
 
-stg-create-charge: ## stg: 決済の情報を作成
+stg-create-charge: ## stg: Create charge
 	curl -i -sX 'POST' \
 		'https://$(API_DOMAIN)/shop/v1/payments/charges' \
 		-H 'accept: application/json' \
@@ -361,6 +361,6 @@ stg-create-charge: ## stg: 決済の情報を作成
 # General
 # =================================================================
 .PHONY: help
-help: ## ヘルプ
+help: ## Help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
