@@ -8,7 +8,7 @@ resource "aws_security_group" "core_db" {
   tags        = { Name = "${local.fqn}-core-db-sg" }
 }
 
-# bastion -> RDS
+# RDS <- Bastion
 resource "aws_vpc_security_group_ingress_rule" "from_bastion_to_core_db" {
   security_group_id            = aws_security_group.core_db.id
   description                  = "Allow MySQL access from Bastion SG"
@@ -19,7 +19,7 @@ resource "aws_vpc_security_group_ingress_rule" "from_bastion_to_core_db" {
   tags                         = { Name = "${local.fqn}-from-bastion-to-core-db-ingress" }
 }
 
-# RDS Proxy -> RDS
+# RDS <- RDS Proxy
 resource "aws_vpc_security_group_ingress_rule" "from_rds_proxy_to_core_db" {
   security_group_id            = aws_security_group.core_db.id
   description                  = "Allow MySQL access from RDS Proxy SG"
@@ -39,10 +39,10 @@ resource "aws_security_group" "rds_proxy" {
   tags        = { Name = "${local.fqn}-rds-proxy-sg" }
 }
 
-# bastion -> RDS Proxy
+# RDS Proxy <- Bastion
 resource "aws_vpc_security_group_ingress_rule" "from_bastion_to_rds_proxy" {
   security_group_id            = aws_security_group.rds_proxy.id
-  description                  = "Allow MySQL access from Bastion SG"
+  description                  = "Allow RDS Proxy access from Bastion SG"
   from_port                    = 3306
   to_port                      = 3306
   ip_protocol                  = "tcp"
@@ -50,7 +50,8 @@ resource "aws_vpc_security_group_ingress_rule" "from_bastion_to_rds_proxy" {
   tags                         = { Name = "${local.fqn}-from-bastion-to-rds-proxy-ingress" }
 }
 
-resource "aws_vpc_security_group_egress_rule" "rds_proxy_to_core_db" {
+# RDS Proxy -> RDS
+resource "aws_vpc_security_group_egress_rule" "from_rds_proxy_to_core_db" {
   security_group_id            = aws_security_group.rds_proxy.id
   description                  = "Allow MySQL access from RDS Proxy SG"
   from_port                    = 3306

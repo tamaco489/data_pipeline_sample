@@ -3,7 +3,7 @@
 
 set -e
 
-# ========== ユーザー入力で環境を指定 ==========
+# ========== Prompt user for environment ==========
 
 echo "=============================================="
 echo "Please specify the environment to reset:"
@@ -34,7 +34,7 @@ echo " User               : ${MYSQL_USER}"
 echo " Database           : ${MYSQL_DATABASE}"
 echo "=============================================="
 
-# 最終確認
+# === Confirm ===
 read -p "Are you sure you want to reset the '${ENVIRONMENT}' database? (y/N): " CONFIRM
 if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
   echo "Cancelled."
@@ -45,14 +45,14 @@ echo "========================= [ Start truncating data ] ======================
 echo "Executing TRUNCATE script: ${SQL_FILE} ..."
 
 if [ "$ENVIRONMENT" = "dev" ]; then
-  # dev: docker compose 経由
+  # dev: via docker compose
   CONTAINER_NAME="mysql"
   docker compose exec -T $CONTAINER_NAME \
     mysql -h"$MYSQL_HOST" -P"$MYSQL_PORT" \
     -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" < "$SQL_FILE"
 
 elif [ "$ENVIRONMENT" = "stg" ]; then
-  # stg: 直接実行
+  # stg: directly execute
   mysql -h"$MYSQL_HOST" -P"$MYSQL_PORT" \
     -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" < "$SQL_FILE"
 fi

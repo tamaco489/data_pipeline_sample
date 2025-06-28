@@ -69,23 +69,3 @@ encrypt-secret:
 decrypt-secret:
 	@AWS_PROFILE=$(AWS_PROFILE) AWS_DEFAULT_REGION=$(AWS_REGION) \
 		sops --kms $(SOPS_KMS_ARN) -d tfvars/$(ENV)_$(CREDENTIAL_FILE_NAME).yaml
-
-
-# =====================================================================================
-# aws
-# =====================================================================================
-# ssm
-.PHONY: ssm-start-session get-secret-value describe-db-proxy-targets
-ssm-start-session:
-	@AWS_PROFILE=$(AWS_PROFILE) AWS_DEFAULT_REGION=$(AWS_REGION) \
-		aws ssm start-session --target $(TARGET_ID)
-
-# secrets manager
-get-secret-value:
-	@AWS_PROFILE=$(AWS_PROFILE) AWS_DEFAULT_REGION=$(AWS_REGION) \
-		aws secretsmanager get-secret-value --secret-id $(SECRET_ID) | jq .
-
-# rds proxy
-describe-db-proxy-targets:
-	@AWS_PROFILE=$(AWS_PROFILE) AWS_DEFAULT_REGION=$(AWS_REGION) \
-		aws rds describe-db-proxy-targets --db-proxy-name $(DB_PROXY_NAME) | jq .

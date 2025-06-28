@@ -56,10 +56,10 @@ func NewShopAPIServer(cnf configuration.Config) (*http.Server, error) {
 
 func NewCorsConfig() cors.Config {
 	return cors.Config{
-		// 許可するオリジンを指定（一旦全許可）
+		// Specify allowed origins (temporarily allow all)
 		AllowOrigins: []string{"*"},
 
-		// 必要なメソッドのみ許可
+		// Specify allowed methods
 		AllowMethods: []string{
 			"GET",
 			"POST",
@@ -69,7 +69,7 @@ func NewCorsConfig() cors.Config {
 			"OPTIONS",
 		},
 
-		// 許可するヘッダーを限定
+		// Specify allowed headers
 		AllowHeaders: []string{
 			"Origin",
 			"Content-Length",
@@ -78,13 +78,13 @@ func NewCorsConfig() cors.Config {
 			"Access-Control-Allow-Origin",
 		},
 
-		// クライアントがアクセスできるレスポンスヘッダー
+		// Specify exposed headers
 		ExposeHeaders: []string{"Content-Length"},
 
-		// 認証情報を送信可能にする
+		// Allow credentials
 		AllowCredentials: false,
 
-		// プリフライトリクエストのキャッシュ時間（秒）
+		// Specify cache duration for preflight requests (seconds)
 		MaxAge: 86400,
 	}
 }

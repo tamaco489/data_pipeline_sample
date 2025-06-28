@@ -194,9 +194,18 @@ $ make stg-describe-db-proxy-targets AWS_PROFILE=$(AWS_PROFILE)
 # ssm で踏み台へアクセス
 $ make ssm-start-session AWS_PROFILE=$(AWS_PROFILE) TARGET_ID=$(TARGET_ID)
 
+# Goのパス設定
+$ export PATH=$PATH:/usr/local/go/bin
+
+# Goスクリプト実行に必要なディレクトリ群を作成し、権限の割り当て
+$ sudo mkdir -p /home/ssm-user/go /home/ssm-user/.cache
+$ sudo chown -R ssm-user:ssm-user /home/ssm-user/go
+$ sudo chown -R ssm-user:ssm-user /home/ssm-user/.cache
+
 # プロジェクトのルートディレクトリへ移動
 $ cd /home/ssm-user/workspace/data_pipeline_sample/api/shop/
 ```
+
 ```bash
 # RDS Proxy を経由して DB へアクセス
 $ mysql -h $(RDS_PROXY_HOST_NAME) -P 3306 -u core -ppassword -D stg_core
@@ -251,15 +260,9 @@ mysql> show tables;
 
 #### 3. 初期データを投入
 
-スクリプト実行環境設定
+workディレクトリに移動
 ```bash
-# Goのパス設定
-$ export PATH=$PATH:/usr/local/go/bin
-
-# Goスクリプト実行に必要なディレクトリ群を作成し、権限の割り当て
-$ sudo mkdir -p /home/ssm-user/go /home/ssm-user/.cache
-$ sudo chown -R ssm-user:ssm-user /home/ssm-user/go
-$ sudo chown -R ssm-user:ssm-user /home/ssm-user/.cache
+cd /home/ssm-user/workspace/data_pipeline_sample/
 ```
 
 データ投入スクリプトを実行
@@ -334,4 +337,13 @@ go: downloading filippo.io/edwards25519 v1.1.0
 2025/06/24 13:28:02 INFO processing charge reservation_id=30000000-0000-0000-0000-000000000049
 2025/06/24 13:28:02 INFO inserted charge_product charge_id=0197a21f-cda9-76d7-98ca-a011bd080a43 product_id=10001007
 2025/06/24 13:28:02 INFO charge script completed
+```
+
+4. Secrets Manager の `host` を更新
+```bash
+# 更新
+$ make stg-put-secret-value AWS_PROFILE=xxxxxxxxxxxx SECRET_ID=core/stg/rds-cluster MYSQL_DATABASE=stg_core MYSQL_HOST=xxxxxxxxxxxx MYSQL_PORT=3306 MYSQL_USER=core MYSQL_PASSWORD=password
+
+# 確認
+$ make stg-get-secret-value AWS_PROFILE=xxxxxxxxxxxx SECRET_ID=core/stg/rds-cluster
 ```

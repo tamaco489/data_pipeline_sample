@@ -3,7 +3,7 @@
 
 set -e
 
-# === ユーザーに環境を入力させる ===
+# === Prompt user for environment ===
 echo "=============================================="
 echo "Please specify the environment to insert seed data:"
 echo "  [dev] -> Docker Compose 経由"
@@ -17,7 +17,7 @@ if [[ "$ENVIRONMENT" != "dev" && "$ENVIRONMENT" != "stg" ]]; then
   exit 1
 fi
 
-# === DB接続情報 ===
+# === DB connection information ===
 CONTAINER_NAME="mysql"
 MYSQL_USER="${MYSQL_USER:-root}"
 MYSQL_PASSWORD="${MYSQL_PASSWORD:-password#0}"
@@ -25,7 +25,7 @@ MYSQL_DATABASE="${MYSQL_DATABASE:-dev_core}"
 MYSQL_HOST="${MYSQL_HOST:-localhost}"
 MYSQL_PORT="${MYSQL_PORT:-33306}"
 
-# === ログ ===
+# === Log ===
 echo "=============================================="
 echo " Target Environment : ${ENVIRONMENT}"
 echo " CONTAINER_NAME     : ${CONTAINER_NAME}"
@@ -36,14 +36,14 @@ echo " MYSQL_HOST         : ${MYSQL_HOST}"
 echo " MYSQL_PORT         : ${MYSQL_PORT}"
 echo "=============================================="
 
-# === 確認 ===
+# === Confirm ===
 read -p "Are you sure you want to insert seed data into '${ENVIRONMENT}'? (y/N): " CONFIRM
 if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
   echo "Cancelled."
   exit 1
 fi
 
-# === 対象 SQL ===
+# === Target SQL ===
 SQL_FILES=(
   # users
   "./scripts/seeds/loader/users/01_users.sql"
@@ -63,20 +63,20 @@ SQL_FILES=(
   "./scripts/seeds/loader/payments/04_reservation_products.sql"
 )
 
-# === 実行 ===
+# === Execute ===
 for sql_file in "${SQL_FILES[@]}"
 do
   echo "Executing ${sql_file} ..."
 
   if [ "$ENVIRONMENT" = "dev" ]; then
-    # dev: docker compose 経由
+    # dev: via docker compose
     docker compose exec -T $CONTAINER_NAME \
       mysql -h"$MYSQL_HOST" -P"$MYSQL_PORT" \
       -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" \
       "$MYSQL_DATABASE" < "$sql_file"
 
   elif [ "$ENVIRONMENT" = "stg" ]; then
-    # stg: 直接実行
+    # stg: directly execute
     mysql -h"$MYSQL_HOST" -P"$MYSQL_PORT" \
       -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" \
       "$MYSQL_DATABASE" < "$sql_file"
