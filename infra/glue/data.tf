@@ -21,3 +21,11 @@ data "terraform_remote_state" "credential_core_db" {
     key    = "credential/core_db/terraform.tfstate"
   }
 }
+
+data "terraform_remote_state" "s3" {
+  backend = "s3"
+  config = {
+    bucket = "${var.env}-data-pipeline-sample-tfstate"
+    key    = "s3/terraform.tfstate"
+  }
+}
