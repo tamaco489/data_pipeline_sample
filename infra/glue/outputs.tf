@@ -8,13 +8,13 @@ output "glue_catalog_database" {
 }
 
 # Glue Connection
-# output "glue_connection" {
-#   description = "Glue connection for RDS"
-#   value = {
-#     name = aws_glue_connection.rds_connection.name
-#     arn  = aws_glue_connection.rds_connection.arn
-#   }
-# }
+output "glue_connection" {
+  description = "Glue connection for RDS"
+  value = {
+    name = aws_glue_connection.core_db.name
+    arn  = aws_glue_connection.core_db.arn
+  }
+}
 
 # Glue Crawler
 # output "glue_crawler" {
