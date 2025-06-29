@@ -1,15 +1,15 @@
 # Glue Catalog Database
 output "glue_catalog_database" {
-  description = "Glue catalog database for analytics"
+  description = "Glue catalog database for core db"
   value = {
-    name = aws_glue_catalog_database.analytics_db.name
-    arn  = aws_glue_catalog_database.analytics_db.arn
+    name = aws_glue_catalog_database.core_db.name
+    arn  = aws_glue_catalog_database.core_db.arn
   }
 }
 
 # Glue Connection
 output "glue_connection" {
-  description = "Glue connection for RDS"
+  description = "Glue connection for Core DB"
   value = {
     name = aws_glue_connection.core_db.name
     arn  = aws_glue_connection.core_db.arn
@@ -18,7 +18,7 @@ output "glue_connection" {
 
 # Glue Security Group
 output "glue_connection_security_group" {
-  description = "Security group for Glue connection to RDS"
+  description = "Security group for Glue connection to Core DB"
   value = {
     id   = aws_security_group.glue_connection.id
     name = aws_security_group.glue_connection.name
@@ -27,9 +27,9 @@ output "glue_connection_security_group" {
 
 # Glue Crawler
 # output "glue_crawler" {
-#   description = "Glue crawler that crawls RDS schema"
+#   description = "Glue crawler that crawls Core DB schema"
 #   value = {
-#     name = aws_glue_crawler.rds_crawler.name
-#     arn  = aws_glue_crawler.rds_crawler.arn
+#     name = aws_glue_crawler.core_db.name
+#     arn  = aws_glue_crawler.core_db.arn
 #   }
 # }
