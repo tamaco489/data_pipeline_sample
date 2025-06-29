@@ -8,7 +8,8 @@ resource "aws_glue_connection" "core_db" {
 
   physical_connection_requirements {
     # 本番は private subnet にしておくのが better
-    availability_zone = data.terraform_remote_state.network.outputs.vpc.public_subnet_ids[0]
+    # NOTE: 利用可能なAZから動的に選択
+    availability_zone = data.aws_availability_zones.available.names[0]
 
     # 本番は private subnet にしておくのが better、Glue の ENI が配置される subnet
     subnet_id = data.terraform_remote_state.network.outputs.vpc.public_subnet_ids[0]
