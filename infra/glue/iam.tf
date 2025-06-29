@@ -37,9 +37,7 @@ data "aws_iam_policy_document" "glue_secrets_manager" {
     actions = [
       "secretsmanager:GetSecretValue",
     ]
-    # TODO: 検証中のため、全てのリソースを許可
-    resources = ["*"]
-    # resources = [data.terraform_remote_state.credential_core_db.outputs.core_db.arn]
+    resources = [data.terraform_remote_state.credential_core_db.outputs.core_db.arn]
   }
 }
 
