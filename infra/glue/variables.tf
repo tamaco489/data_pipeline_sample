@@ -19,6 +19,12 @@ variable "region" {
   default     = "ap-northeast-1"
 }
 
+variable "database_name" {
+  description = "The name of the database to connect to"
+  type        = string
+  default     = "stg_core"
+}
+
 locals {
   fqn = "${var.env}-${var.project}"
 }
