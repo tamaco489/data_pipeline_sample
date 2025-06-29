@@ -180,6 +180,34 @@ stg-describe-db-instances: ## stg: Get RDS information
 stg-describe-db-proxy-targets: ## stg: Get RDS Proxy information
 	aws rds describe-db-proxy-targets --profile ${AWS_PROFILE} --region ap-northeast-1 --db-proxy-name stg-data-pipeline-sample-core-db-proxy | jq .
 
+# s3
+S3_BUCKET_NAME ?= stg-data-pipeline-sample-glue-job-script
+.PHONY: stg-s3-recursive-delete stg-s3-delete-versions stg-s3-delete-markers
+stg-s3-recursive-delete: ## stg: Empty the Glue job script S3 bucket (remove all objects recursively)
+	aws s3 rm s3://$(S3_BUCKET_NAME) \
+		--profile ${AWS_PROFILE} --recursive
+
+stg-s3-delete-versions:
+	aws s3api delete-objects \
+		--bucket $(S3_BUCKET_NAME) \
+		--delete "$$(aws s3api list-object-versions \
+			--bucket $(S3_BUCKET_NAME) \
+			--profile ${AWS_PROFILE} \
+			--query='{Objects: Versions[].{Key:Key,VersionId:VersionId}}' \
+			--output json)" \
+		--profile ${AWS_PROFILE} | jq .
+
+stg-s3-delete-markers:
+	aws s3api delete-objects \
+		--bucket $(S3_BUCKET_NAME) \
+		--delete "$$(aws s3api list-object-versions \
+			--bucket $(S3_BUCKET_NAME) \
+			--profile ${AWS_PROFILE} \
+			--query='{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' \
+			--output json)" \
+		--profile ${AWS_PROFILE} | jq .
+
+
 # =================================================================
 # MySQL operations (port-forward, ping, cmd, dump, dump-import)
 # =================================================================
