@@ -2,6 +2,9 @@
 # Batch Scripts Management
 # =====================================================================================
 
+# S3バケット名（環境に応じて変更してください）
+S3_BUCKET_NAME ?= stg-data-pipeline-sample-glue-job-script
+
 # デフォルトターゲット
 .PHONY: help
 help: ## Display available commands
@@ -18,6 +21,17 @@ upload-all-scripts: ## Upload all ETL scripts to S3
 	@$(MAKE) -s -C sales_analytics upload-script
 	@echo ""
 	@echo "✅ All ETL scripts uploaded successfully!"
+
+.PHONY: delete-all-scripts
+delete-all-scripts: ## Delete all ETL scripts from S3
+	@echo "🗑️ Starting ETL scripts deletion from S3..."
+	@echo ""
+	@echo "📁 Core DB ETL..."
+	@$(MAKE) -s -C core_db_etl delete-script
+	@echo "📊 Sales Analytics..."
+	@$(MAKE) -s -C sales_analytics delete-script
+	@echo ""
+	@echo "✅ All ETL scripts deleted successfully!"
 
 .PHONY: clean-all
 clean-all: ## Clean temporary files in all directories

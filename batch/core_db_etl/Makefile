@@ -16,6 +16,11 @@ upload-script: ## Upload Core DB ETL script to S3
 	@aws s3 cp main.py s3://$(S3_BUCKET_NAME)/scripts/core_db_etl/main.py --quiet
 	@echo "  ✅ Uploaded: main.py → s3://$(S3_BUCKET_NAME)/scripts/core_db_etl/main.py"
 
+.PHONY: delete-script
+delete-script: ## Delete Core DB ETL script from S3
+	@aws s3 rm s3://$(S3_BUCKET_NAME)/scripts/core_db_etl/main.py --quiet
+	@echo "  ✅ Deleted: s3://$(S3_BUCKET_NAME)/scripts/core_db_etl/main.py"
+
 .PHONY: clean
 clean: ## Clean temporary files
 	@echo "Cleaning temporary files..."

@@ -16,6 +16,11 @@ upload-script: ## Upload Sales Analytics script to S3
 	@aws s3 cp main.py s3://$(S3_BUCKET_NAME)/scripts/sales_analytics/main.py --quiet
 	@echo "  ✅ Uploaded: main.py → s3://$(S3_BUCKET_NAME)/scripts/sales_analytics/main.py"
 
+.PHONY: delete-script
+delete-script: ## Delete Sales Analytics script from S3
+	@aws s3 rm s3://$(S3_BUCKET_NAME)/scripts/sales_analytics/main.py --quiet
+	@echo "  ✅ Deleted: s3://$(S3_BUCKET_NAME)/scripts/sales_analytics/main.py"
+
 .PHONY: clean
 clean: ## Clean temporary files
 	@echo "Cleaning temporary files..."
