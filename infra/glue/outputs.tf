@@ -16,20 +16,20 @@ output "glue_connection" {
   }
 }
 
+# Glue Security Group
+output "glue_connection_security_group" {
+  description = "Security group for Glue connection to RDS"
+  value = {
+    id   = aws_security_group.glue_connection.id
+    name = aws_security_group.glue_connection.name
+  }
+}
+
 # Glue Crawler
 # output "glue_crawler" {
 #   description = "Glue crawler that crawls RDS schema"
 #   value = {
 #     name = aws_glue_crawler.rds_crawler.name
 #     arn  = aws_glue_crawler.rds_crawler.arn
-#   }
-# }
-
-# Glue用の Security Group
-# output "glue_connection_security_group" {
-#   description = "Security group for Glue connection to RDS"
-#   value = {
-#     id   = aws_security_group.glue_connection.id
-#     name = aws_security_group.glue_connection.name
 #   }
 # }
