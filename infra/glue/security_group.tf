@@ -9,6 +9,28 @@ resource "aws_security_group" "glue_connection" {
   tags = { Name = "${local.fqn}-glue-connection" }
 }
 
+# Allow all inbound traffic within Glue Connection
+resource "aws_vpc_security_group_ingress_rule" "glue_connection_all_internal" {
+  security_group_id            = aws_security_group.glue_connection.id
+  description                  = "Allow all internal traffic within Glue Connection SG"
+  from_port                    = -1
+  to_port                      = -1
+  ip_protocol                  = "-1"
+  referenced_security_group_id = aws_security_group.glue_connection.id
+  tags                         = { Name = "${local.fqn}-glue-connection-all-internal-ingress" }
+}
+
+# Allow all outbound traffic within Glue Connection
+resource "aws_vpc_security_group_egress_rule" "glue_connection_all_internal" {
+  security_group_id            = aws_security_group.glue_connection.id
+  description                  = "Allow all internal traffic within Glue Connection SG"
+  from_port                    = -1
+  to_port                      = -1
+  ip_protocol                  = "-1"
+  referenced_security_group_id = aws_security_group.glue_connection.id
+  tags                         = { Name = "${local.fqn}-glue-connection-all-internal-egress" }
+}
+
 # Glue Connection -> RDS Proxy
 resource "aws_vpc_security_group_egress_rule" "glue_to_rds_proxy" {
   security_group_id            = aws_security_group.glue_connection.id
