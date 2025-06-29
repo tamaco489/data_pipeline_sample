@@ -26,10 +26,10 @@ output "glue_connection_security_group" {
 }
 
 # Glue Crawler
-# output "glue_crawler" {
-#   description = "Glue crawler that crawls Core DB schema"
-#   value = {
-#     name = aws_glue_crawler.core_db.name
-#     arn  = aws_glue_crawler.core_db.arn
-#   }
-# }
+output "glue_crawler" {
+  description = "Glue crawler that crawls Core DB schema"
+  value = {
+    name = aws_glue_crawler.core_db.name
+    arn  = aws_glue_crawler.core_db.arn
+  }
+}
