@@ -6,6 +6,17 @@ data "terraform_remote_state" "network" {
   }
 }
 
+# Get available AZs
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+# Get network route tables
+data "aws_route_tables" "network" {
+  vpc_id = data.terraform_remote_state.network.outputs.vpc.id
+}
+
+
 data "terraform_remote_state" "rds_core" {
   backend = "s3"
   config = {
