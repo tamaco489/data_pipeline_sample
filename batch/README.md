@@ -1,54 +1,54 @@
 # Batch Scripts
 
-このディレクトリには、データパイプラインで使用するETLスクリプトが含まれています。
+This directory contains ETL scripts used in the data pipeline.
 
-## ディレクトリ構成
+## Directory Structure
 
 ```
 batch/
-├── core_db_etl/                    # メインETLスクリプト（全テーブル処理）
+├── core_db_etl/                    # Main ETL script (all tables processing)
 │   ├── core_db_etl.py
 │   └── Makefile
-├── sales_analytics/                # 売上分析データ作成
+├── sales_analytics/                # Sales analytics data creation
 │   ├── sales_analytics.py
 │   └── Makefile
-├── Makefile                        # ルートMakefile（全体管理）
-└── README.md                       # このファイル
+├── Makefile                        # Root Makefile (overall management)
+└── README.md                       # This file
 ```
 
-## スクリプトの説明
+## Script Descriptions
 
 ### core_db_etl/
-- **目的**: RDSの全テーブルからデータを抽出し、S3にParquet形式で保存
-- **処理対象テーブル**: users, products, product_stocks, product_ratings, charges, charge_products, reservations, reservation_products
-- **実行頻度**: 毎日午前2時
-- **出力先**: `s3://{bucket}/core_db/{table_name}/`
+- **Purpose**: Extract data from all RDS tables and save to S3 in Parquet format
+- **Target Tables**: users, products, product_stocks, product_ratings, charges, charge_products, reservations, reservation_products
+- **Execution Frequency**: Daily at 2:00 AM
+- **Output Destination**: `s3://{bucket}/core_db/{table_name}/`
 
 ### sales_analytics/
-- **目的**: 売上データ（charges + charge_products + products）を結合して分析用データを作成
-- **処理内容**: 
-  - charges, charge_products, productsテーブルの結合
-  - 売上データの詳細情報作成
-  - 日別売上集計の自動生成
-- **実行頻度**: 1時間毎
-- **出力先**: 
-  - `s3://{bucket}/purchase_data/` (売上詳細)
-  - `s3://{bucket}/daily_sales_summary/` (日別集計)
+- **Purpose**: Create analytics data by combining sales data (charges + charge_products + products)
+- **Processing Content**: 
+  - Join charges, charge_products, and products tables
+  - Create detailed sales data information
+  - Automatically generate daily sales summaries
+- **Execution Frequency**: Every hour
+- **Output Destinations**: 
+  - `s3://{bucket}/purchase_data/` (sales details)
+  - `s3://{bucket}/daily_sales_summary/` (daily summaries)
 
-## 使用方法
+## Usage
 
-### 1. 全体の操作（ルートディレクトリから）
+### 1. Overall Operations (from root directory)
 
 ```bash
 cd batch/
 
-# 全スクリプトのアップロード
+# Upload all scripts
 make upload-all-scripts AWS_PROFILE=$(AWS_PROFILE)
 
-# 全ディレクトリの一時ファイルを削除
+# Clean temporary files from all directories
 make clean-all
 
-# ヘルプ表示
+# Display help
 make help
 ```
 
@@ -66,49 +66,49 @@ $ make upload-all-scripts AWS_PROFILE=xxxxxxxxxxxx
 ```
 
 
-### 2. 個別スクリプトの操作 (Core DB ETL, Sales Analytics 共通)
+### 2. Individual Script Operations (Common for Core DB ETL, Sales Analytics)
 ```bash
-# core_db_etl の場合
+# For core_db_etl
 cd core_db_etl
 
-# sales_analytics の場合
+# For sales_analytics
 cd sales_analytics
 
-# スクリプトのみアップロード
+# Upload script only
 make upload-script AWS_PROFILE=$(AWS_PROFILE)
 
-# ヘルプ表示
+# Display help
 make help
 ```
 
-### 3. 個別ディレクトリの操作（ルートから）
+### 3. Individual Directory Operations (from root)
 
 ```bash
-# Core DB ETLの操作
+# Core DB ETL operations
 make -C core_db_etl upload-script AWS_PROFILE=$(AWS_PROFILE)
 
-# Sales Analyticsの操作
+# Sales Analytics operations
 make -C sales_analytics upload-script AWS_PROFILE=$(AWS_PROFILE)
 ```
 
-## ディレクトリ分離の利点
+## Benefits of Directory Separation
 
-### 1. **責任の分離**
-- 各スクリプトが独立したディレクトリで管理
-- スクリプト固有の設定や依存関係を分離
+### 1. **Separation of Responsibilities**
+- Each script is managed in an independent directory
+- Script-specific settings and dependencies are isolated
 
-### 2. **保守性の向上**
-- スクリプトごとの変更が他に影響しない
-- 個別のアップロードが可能
+### 2. **Improved Maintainability**
+- Changes to individual scripts don't affect others
+- Individual uploads are possible
 
-### 3. **拡張性**
-- 新しいETLスクリプトの追加が容易
-- 各スクリプトに独自のMakefile設定が可能
+### 3. **Scalability**
+- Easy to add new ETL scripts
+- Each script can have its own Makefile configuration
 
-## 注意事項
+## Important Notes
 
-- スクリプトはGlue環境でのみ実行されます。
-- ローカル環境でのインポートエラーは正常な動作です。
-- スクリプトを修正した場合は、必ず対応するディレクトリで`make upload-script`を実行してください。
-- インフラの変更は`infra/glue/`ディレクトリで行ってください。
-- このディレクトリはスクリプトのアップロードのみを担当し、Terraformなどのインフラ構成変更は行いません。
+- Scripts are executed only in the Glue environment.
+- Import errors in the local environment are normal behavior.
+- When modifying scripts, always run `make upload-script` in the corresponding directory.
+- Infrastructure changes should be made in the `infra/glue/` directory.
+- This directory is responsible only for script uploads and does not perform infrastructure configuration changes such as Terraform.
