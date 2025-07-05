@@ -22,6 +22,38 @@ This project consists of the following components:
 
 ![Data Flow](docs/flow/data_flow.png)
 
+### Analytics Flow
+
+![Analytics Flow](docs/flow/analytics_flow.png)
+
 ### API Request Flow
 
 ![API Request Flow](docs/flow/api_request_flow.png)
+
+## 📁 Project Structure
+
+```
+data-pipeline-sample/
+├── api/                           # Shop API service
+│   ├── src/                      # Lambda function source code
+│   ├── Dockerfile                # Container image definition
+│   └── Makefile                  # Build and deployment scripts
+├── batch/                        # ETL processing scripts
+│   ├── core_db_etl/             # Main ETL script (all tables)
+│   ├── sales_analytics/         # Sales analytics data creation
+│   └── Makefile                 # Script upload management
+├── infra/                       # AWS infrastructure (Terraform)
+│   ├── network/                 # VPC, subnets, security groups
+│   ├── rds/                     # Aurora MySQL database
+│   ├── s3/                      # S3 buckets for data lake
+│   ├── glue/                    # Glue jobs, crawlers, connections
+│   ├── athena/                  # Athena workgroup and queries
+│   └── api/                     # API Gateway and Lambda
+├── docs/                        # Documentation and diagrams
+│   ├── architecture/            # System architecture diagrams
+│   ├── flow/                    # Data flow diagrams
+│   ├── sequence/                # Sequence diagrams
+│   ├── diagrams/                # Additional diagrams
+│   └── src/                     # Source files for diagrams
+└── README.md                    # This file
+```
