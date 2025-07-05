@@ -58,7 +58,7 @@ resource "aws_glue_job" "sales_analytics" {
   role_arn          = aws_iam_role.glue_service.arn
   glue_version      = "4.0"
   max_retries       = 0
-  timeout           = 300
+  timeout           = 60
   number_of_workers = 2
   worker_type       = "G.1X"
 
@@ -82,7 +82,7 @@ resource "aws_glue_job" "sales_analytics" {
     "--enable-metrics"                   = "true"
     "--job-bookmark-option"              = "job-bookmark-enable"
     "--partition_by"                     = "year,month,day"
-    "--conf"                             = "spark.hadoop.fs.s3a.endpoint=https://s3.${var.region}.amazonaws.com --conf spark.hadoop.fs.s3a.path.style.access=true --conf spark.hadoop.fs.s3a.aws.credentials.provider=com.amazonaws.auth.DefaultAWSCredentialsProviderChain"
+    "--conf" = "spark.hadoop.aws.glue.proxy.host=169.254.76.0 spark.hadoop.aws.glue.proxy.port=8888 spark.glue.USE_PROXY=true"
   }
 
   tags = { Name = "${local.fqn}-sales-analytics-job" }
