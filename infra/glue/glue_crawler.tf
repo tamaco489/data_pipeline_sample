@@ -5,7 +5,7 @@
 resource "aws_glue_crawler" "core_db" {
   name        = "${local.fqn}-core-db-glue-crawler"
   description = "Glue Crawler for Core DB"
-  role        = aws_iam_role.glue_crawler.arn
+  role        = aws_iam_role.glue_service.arn
 
   # Glue Crawler が検出したテーブルを格納する Glue Data Catalog の DB
   database_name = aws_glue_catalog_database.core_db.name
