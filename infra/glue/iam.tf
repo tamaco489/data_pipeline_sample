@@ -51,3 +51,38 @@ resource "aws_iam_role_policy_attachment" "glue_secrets_manager" {
   role       = aws_iam_role.glue_service.name
   policy_arn = aws_iam_policy.glue_secrets_manager.arn
 }
+
+# =================================================================
+# S3 access policy for Glue Service
+# =================================================================
+# Glue Service 用の S3 アクセスポリシー
+data "aws_iam_policy_document" "glue_s3_access" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+      "s3:ListBucket"
+    ]
+    resources = [
+      data.terraform_remote_state.s3.outputs.glue_etl_output.arn,
+      "${data.terraform_remote_state.s3.outputs.glue_etl_output.arn}/*",
+      data.terraform_remote_state.s3.outputs.glue_job_script.arn,
+      "${data.terraform_remote_state.s3.outputs.glue_job_script.arn}/*",
+      data.terraform_remote_state.s3.outputs.athena_query_result.arn,
+      "${data.terraform_remote_state.s3.outputs.athena_query_result.arn}/*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "glue_s3_access" {
+  name        = "${local.fqn}-glue-s3-access-policy"
+  description = "Allows Glue to access S3 buckets for ETL operations"
+  policy      = data.aws_iam_policy_document.glue_s3_access.json
+}
+
+resource "aws_iam_role_policy_attachment" "glue_s3_access" {
+  role       = aws_iam_role.glue_service.name
+  policy_arn = aws_iam_policy.glue_s3_access.arn
+}
