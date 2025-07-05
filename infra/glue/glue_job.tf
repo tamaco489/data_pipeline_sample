@@ -82,7 +82,6 @@ resource "aws_glue_job" "sales_analytics" {
     "--enable-metrics"                   = "true"
     "--job-bookmark-option"              = "job-bookmark-enable"
     "--partition_by"                     = "year,month,day"
-    "--conf"                             = "spark.hadoop.aws.glue.proxy.host=169.254.76.0 spark.hadoop.aws.glue.proxy.port=8888 spark.glue.USE_PROXY=true"
   }
 
   tags = { Name = "${local.fqn}-sales-analytics-job" }
