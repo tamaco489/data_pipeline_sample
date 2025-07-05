@@ -26,7 +26,7 @@ resource "aws_glue_connection" "core_db" {
     JDBC_CONNECTION_URL = "jdbc:mysql://${data.terraform_remote_state.rds_core.outputs.rds_proxy.endpoint}:3306/${var.database_name}"
 
     # RDS Proxy の認証情報を保持する Secrets Manager を指定
-    SECRET_ID = data.terraform_remote_state.credential_core_db.outputs.core_db.name
+    SECRET_ID = data.terraform_remote_state.credential_core_db.outputs.core_db.arn
 
     # 検証時など、TLS接続のエラー回避用（任意）、本番では true にしておくのが better
     JDBC_ENFORCE_SSL = "false"
