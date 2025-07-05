@@ -1,6 +1,7 @@
 # =====================================================================================
 # Glue Connection for RDS
 # =====================================================================================
+# NOTE: 初回構築時は、依存リソースの作成に時間がかかりエラーになる可能性あり。※その場合は少し時間を空けて再実行することで解決。
 resource "aws_glue_connection" "core_db" {
   name            = "${local.fqn}-core-db-glue-connection"
   description     = "Glue Connection for Core DB"
@@ -26,6 +27,9 @@ resource "aws_glue_connection" "core_db" {
 
     # RDS Proxy の認証情報を保持する Secrets Manager を指定
     SECRET_ID = data.terraform_remote_state.credential_core_db.outputs.core_db.name
+
+    # 検証時など、TLS接続のエラー回避用（任意）、本番では true にしておくのが better
+    JDBC_ENFORCE_SSL = "false"
   }
 
   tags = { Name = "${local.fqn}-core-db-glue-connection" }

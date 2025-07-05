@@ -40,6 +40,8 @@ batch/
 ### 1. 全体の操作（ルートディレクトリから）
 
 ```bash
+cd batch/
+
 # 全スクリプトのアップロード
 make upload-all-scripts AWS_PROFILE=$(AWS_PROFILE)
 
