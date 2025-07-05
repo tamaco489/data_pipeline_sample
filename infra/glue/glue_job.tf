@@ -62,10 +62,16 @@ resource "aws_glue_job" "sales_analytics" {
   number_of_workers = 2
   worker_type       = "G.1X"
 
+  connections = [aws_glue_connection.core_db.name]
+
   command {
     name            = "glueetl"
     script_location = "s3://${data.terraform_remote_state.s3.outputs.glue_job_script.name}/scripts/sales_analytics/main.py"
     python_version  = "3"
+  }
+
+  execution_property {
+    max_concurrent_runs = 1
   }
 
   default_arguments = {
@@ -76,6 +82,7 @@ resource "aws_glue_job" "sales_analytics" {
     "--enable-metrics"                   = "true"
     "--job-bookmark-option"              = "job-bookmark-enable"
     "--partition_by"                     = "year,month,day"
+    "--conf"                             = "spark.hadoop.fs.s3a.endpoint=https://s3.${var.region}.amazonaws.com --conf spark.hadoop.fs.s3a.path.style.access=true --conf spark.hadoop.fs.s3a.aws.credentials.provider=com.amazonaws.auth.DefaultAWSCredentialsProviderChain"
   }
 
   tags = { Name = "${local.fqn}-sales-analytics-job" }
