@@ -18,8 +18,7 @@ from pyspark.sql.functions import current_timestamp, year, month, dayofmonth, co
 args = getResolvedOptions(sys.argv, [
     'JOB_NAME',
     'output_bucket',
-    'database_name',
-    'table_name'
+    'database_name'
 ])
 
 # Glue コンテキストの初期化
@@ -33,17 +32,23 @@ job.init(args['JOB_NAME'], args)
 output_bucket = args['output_bucket']
 database_name = args['database_name']
 
-print(f"Starting Purchase Data ETL job")
+print(f"Starting Sales Analytics ETL job")
 print(f"Database: {database_name}")
 print(f"Output bucket: {output_bucket}")
 
 try:
     # charges テーブルからデータを読み込み
     print("Loading charges table...")
+    
+    # Glue Connectionを使用してデータを読み込み
+    print(f"] Using Glue Connection: {database_name}-core-db-glue-connection")
+    print(f"] Database: {database_name}")
+    print(f"] Table: charges")
+    
     charges_dyf = glueContext.create_dynamic_frame.from_options(
-        connection_type="mysql",
+        connection_type="jdbc",
         connection_options={
-            "connectionName": f"{database_name}-glue-connection",
+            "connectionName": f"{database_name}-core-db-glue-connection",
             "dbtable": "charges"
         }
     )
@@ -52,9 +57,9 @@ try:
     # charge_products テーブルからデータを読み込み
     print("Loading charge_products table...")
     charge_products_dyf = glueContext.create_dynamic_frame.from_options(
-        connection_type="mysql",
+        connection_type="jdbc",
         connection_options={
-            "connectionName": f"{database_name}-glue-connection",
+            "connectionName": f"{database_name}-core-db-glue-connection",
             "dbtable": "charge_products"
         }
     )
@@ -63,9 +68,9 @@ try:
     # products テーブルからデータを読み込み（商品情報を取得するため）
     print("Loading products table...")
     products_dyf = glueContext.create_dynamic_frame.from_options(
-        connection_type="mysql",
+        connection_type="jdbc",
         connection_options={
-            "connectionName": f"{database_name}-glue-connection",
+            "connectionName": f"{database_name}-core-db-glue-connection",
             "dbtable": "products"
         }
     )
@@ -163,10 +168,8 @@ try:
     else:
         print("No purchase data found, skipping...")
     
-    print("Purchase Data ETL job completed successfully!")
     
 except Exception as e:
-    print(f"Error during Purchase Data ETL job: {str(e)}")
     raise e
 
 finally:
