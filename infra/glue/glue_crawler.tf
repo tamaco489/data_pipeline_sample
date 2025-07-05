@@ -17,7 +17,7 @@ resource "aws_glue_crawler" "core_db" {
   # JDBC 接続経由でターゲットの RDS にアクセスする定義
   jdbc_target {
     connection_name = aws_glue_connection.core_db.name
-    path            = "${aws_glue_catalog_database.core_db.name}/%" # NOTE: 本番運用時はワイルドカードを使用しないのが better
+    path            = "${var.database_name}/%" # NOTE: 本番運用時はワイルドカードを使用しないのが better
   }
 
   # Schema 変更を検知した場合の挙動を定義
