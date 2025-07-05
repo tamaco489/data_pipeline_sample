@@ -5,7 +5,7 @@
 resource "aws_glue_crawler" "core_db" {
   name        = "${local.fqn}-core-db-glue-crawler"
   description = "Glue Crawler for Core DB"
-  role        = aws_iam_role.glue_crawler.arn
+  role        = aws_iam_role.glue_service.arn
 
   # Glue Crawler が検出したテーブルを格納する Glue Data Catalog の DB
   database_name = aws_glue_catalog_database.core_db.name
@@ -17,7 +17,7 @@ resource "aws_glue_crawler" "core_db" {
   # JDBC 接続経由でターゲットの RDS にアクセスする定義
   jdbc_target {
     connection_name = aws_glue_connection.core_db.name
-    path            = "${aws_glue_catalog_database.core_db.name}/%" # NOTE: 本番運用時はワイルドカードを使用しないのが better
+    path            = "${var.database_name}/%" # NOTE: 本番運用時はワイルドカードを使用しないのが better
   }
 
   # Schema 変更を検知した場合の挙動を定義
